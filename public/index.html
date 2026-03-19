@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overfloow Learn</title>
+  <meta name="description" content="Plataforma de Aulas e E-Books — Overfloow Apoio Administrativo" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/print.css" media="print" />
+  <!-- Marked.js para renderizar Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body data-theme="dark">
+
+  <!-- ═══════════════════════ HEADER ═══════════════════════ -->
+  <header class="app-header" id="app-header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <div class="header-title">
+          <span class="header-product">Overfloow</span>
+          <span class="header-tagline">Learn</span>
+        </div>
+      </div>
+
+      <nav class="header-nav" id="nav-dynamic">
+        <!-- Módulos preenchidos via JS baseado nas permissões do usuário -->
+      </nav>
+
+      <div class="header-actions">
+        <button class="btn-icon" onclick="toggleTheme()" title="Alternar tema" id="theme-btn">🌙</button>
+        <div class="user-badge" id="user-badge" onclick="toggleUserMenu()" title="Meu perfil">
+          <span class="user-initial" id="user-initial">?</span>
+          <div class="user-menu" id="user-menu" style="display:none">
+            <div class="user-menu-header">
+              <span class="user-menu-nome" id="user-menu-nome"></span>
+              <span class="user-menu-grupo" id="user-menu-grupo"></span>
+            </div>
+            <button class="user-menu-btn" onclick="logout()">🚪 Sair</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════ MAIN ═══════════════════════ -->
+  <main class="app-main">
+
+    <!-- ─── MÓDULO: AULA ─── -->
+    <section class="modulo" id="modulo-aula">
+
+      <!-- Toolbar de busca e filtros -->
+      <div class="catalog-toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="Buscar aula, processo, tecnologia…"
+            oninput="filtrarAulas()" />
+        </div>
+        <div class="filter-chips" id="filter-areas">
+          <button class="chip chip-all active" onclick="filtrarArea(null, this)">Todas as áreas</button>
+          <!-- chips gerados via JS -->
+        </div>
+        <div class="filter-status">
+          <select id="filter-status" onchange="filtrarAulas()">
+            <option value="">Todos os status</option>
+            <option value="rascunho">Rascunho</option>
+            <option value="revisao">Em revisão</option>
+            <option value="aprovada">Aprovada</option>
+            <option value="publicada">Publicada</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Grid de cards -->
+      <div class="catalog-grid" id="catalog-grid">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Carregando aulas…</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── MÓDULO: EDITORA ─── -->
+    <section class="modulo hidden" id="modulo-editora">
+      <div class="editora-hero">
+        <div class="editora-hero-inner">
+          <div class="editora-icon">📖</div>
+          <h2>Editora Overfloow©</h2>
+          <p>Monte cadernos e e-books personalizados combinando aulas do catálogo.</p>
+          <div class="editora-coming-soon">
+            <span class="badge badge-soon">Em breve</span>
+            <p>O módulo de E-Books estará disponível na próxima versão.</p>
+            <p class="muted">Por enquanto, use o módulo de Aulas para visualizar e exportar conteúdo em PDF.</p>
+          </div>
+          <div class="editora-stats" id="editora-stats">
+            <!-- preenchido via JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── MÓDULO: AVALIAÇÃO ─── -->
+    <section class="modulo hidden" id="modulo-avaliacao">
+
+      <!-- Tabs internos -->
+      <div class="av-tabs">
+        <button class="av-tab active" id="avtab-quiz" onclick="setAvTab('quiz', this)">📝 Quiz do Aluno</button>
+        <button class="av-tab" id="avtab-qv" onclick="setAvTab('qv', this)">🎯 Sessão QV (Professor)</button>
+        <button class="av-tab" id="avtab-cert" onclick="setAvTab('cert', this)">🏆 Certificados</button>
+      </div>
+
+      <!-- ABA: QUIZ -->
+      <div class="av-panel" id="avpanel-quiz">
+        <div class="av-header">
+          <h2 class="av-title">📝 Responder Quiz</h2>
+          <p class="av-desc">O aluno responde o questionário da aula. O sistema calcula automaticamente CHAM e PPRT.</p>
+        </div>
+
+        <!-- Seleção de aluno e aula -->
+        <div class="av-form-row">
+          <div class="form-group">
+            <label>Aluno</label>
+            <input type="text" id="quiz-aluno" placeholder="Nome ou código do aluno" />
+          </div>
+          <div class="form-group">
+            <label>Aula</label>
+            <select id="quiz-aula">
+              <option value="">Selecionar aula...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Turma</label>
+            <input type="text" id="quiz-turma" placeholder="ex: KIFF-2026-01" />
+          </div>
+          <button class="btn-primary btn-av" onclick="iniciarQuiz()">Iniciar Quiz →</button>
+        </div>
+
+        <!-- Quiz cards de questões (simulado) -->
+        <div class="quiz-container hidden" id="quiz-container">
+          <div class="quiz-progress-bar">
+            <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
+          </div>
+          <div class="quiz-header-row">
+            <span class="quiz-pos" id="quiz-pos">Questão 1 de 10</span>
+            <span class="quiz-dim" id="quiz-dim">Dimensão: C</span>
+          </div>
+          <div class="quiz-card" id="quiz-card">
+            <!-- preenchido via JS -->
+          </div>
+          <div class="quiz-nav">
+            <button class="btn-outline" onclick="quizAnterior()">← Anterior</button>
+            <button class="btn-primary" id="quiz-next-btn" onclick="quizAvancar()">Próxima →</button>
+          </div>
+        </div>
+
+        <!-- Resultado -->
+        <div class="quiz-resultado hidden" id="quiz-resultado">
+          <!-- preenchido via JS após concluir -->
+        </div>
+      </div>
+
+      <!-- ABA: QV -->
+      <div class="av-panel hidden" id="avpanel-qv">
+        <div class="av-header">
+          <h2 class="av-title">🎯 Sessão de Avaliação QV</h2>
+          <p class="av-desc">O professor avalia Qualidade (Q) e Velocidade (V) de cada aluno por aula.</p>
+        </div>
+
+        <div class="av-form-row">
+          <div class="form-group">
+            <label>Turma</label>
+            <input type="text" id="qv-turma" placeholder="ex: KIFF-2026-01" />
+          </div>
+          <div class="form-group">
+            <label>Aula avaliada</label>
+            <select id="qv-aula">
+              <option value="">Selecionar aula...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tipo de sessão</label>
+            <select id="qv-tipo">
+              <option value="dia_especifico">Dia Específico de Avaliação</option>
+              <option value="durante_aula">Durante a Aula</option>
+              <option value="bpo_operacao">BPO — Operação Real</option>
+              <option value="iah_agente">IAH — Agente de IA</option>
+            </select>
+          </div>
+          <button class="btn-primary btn-av" onclick="abrirSessaoQV()">Abrir Sessão →</button>
+        </div>
+
+        <!-- Lista de alunos para avaliar -->
+        <div class="qv-grid" id="qv-grid">
+          <!-- Demo: 3 alunos fixos para demonstração -->
+          <div class="qv-aluno-card" id="qv-demo">
+            <div class="av-placeholder">
+              <span class="av-placeholder-icon">👥</span>
+              <p>Configure a turma e aula acima, depois clique em <strong>Abrir Sessão</strong>.</p>
+              <p class="muted">Os alunos da turma aparecerão aqui para avaliação.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA: CERTIFICADOS -->
+      <div class="av-panel hidden" id="avpanel-cert">
+        <div class="av-header">
+          <h2 class="av-title">🏆 Certificados de Conclusão</h2>
+          <p class="av-desc">Emissores quando o aluno conclui todas as aulas de um SubProcesso com aprovação. Inclui
+            notas, carga horária e assinaturas.</p>
+        </div>
+
+        <div class="cert-preview">
+          <div class="cert-card" id="cert-demo">
+            <div class="cert-header" style="background: var(--area-TES)">
+              <img src="/logo" alt="Overfloow" class="cert-logo" onerror="this.style.display='none'" />
+              <div>
+                <div class="cert-label">CERTIFICADO DE CONCLUSÃO</div>
+                <div class="cert-code">CERT-TES-P01-SP02-2026-001</div>
+              </div>
+            </div>
+            <div class="cert-body">
+              <p class="cert-apresenta">Certificamos que</p>
+              <p class="cert-nome">[Nome do Aluno]</p>
+              <p class="cert-texto">concluiu com êxito o SubProcesso <strong>SP02 — Lançamento de NF de
+                  Fornecedor</strong>, Processo P01 — Contas a Pagar, Área de Tesouraria, com carga horária de <strong>4
+                  horas</strong>.</p>
+              <div class="cert-notas">
+                <div class="cert-nota-item"><span class="cert-nota-val">4,2</span><span
+                    class="cert-nota-label">CHAM</span></div>
+                <div class="cert-nota-item"><span class="cert-nota-val">3,8</span><span
+                    class="cert-nota-label">PPRT</span></div>
+                <div class="cert-nota-item"><span class="cert-nota-val">4,0</span><span
+                    class="cert-nota-label">QV</span></div>
+                <div class="cert-nota-item cert-nota-final"><span class="cert-nota-val">4,0</span><span
+                    class="cert-nota-label">NF Média</span></div>
+              </div>
+              <div class="cert-aulas">
+                <strong>Aulas concluídas:</strong>
+                <ul>
+                  <li>TES-P01-SP02-T07-A001 — Recebimento e Conferência de NF — NF: 4,1</li>
+                  <li>TES-P01-SP02-T07-A002 — Lançamento Completo no Sistema — NF: 3,9</li>
+                </ul>
+              </div>
+              <div class="cert-assinaturas">
+                <div class="cert-assinatura">
+                  <div class="cert-linha-assinatura"></div>
+                  <div class="cert-cargo">Gerente de DEV</div>
+                </div>
+                <div class="cert-assinatura">
+                  <div class="cert-linha-assinatura"></div>
+                  <div class="cert-cargo">Administração Overfloow©</div>
+                </div>
+              </div>
+              <div class="cert-data">São Paulo, 06 de março de 2026</div>
+            </div>
+          </div>
+
+          <div class="cert-actions">
+            <button class="btn-primary" onclick="exportarCertificado()">🖨️ Imprimir / Exportar PDF</button>
+            <p class="muted" style="margin-top:8px">Conecte ao banco <code>datafloow</code> para gerar certificados
+              reais.</p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ─── MÓDULO: ADMIN ─── -->
+    <section class="modulo hidden" id="modulo-admin">
+      <div class="av-header">
+        <h2 class="av-title">⚙️ Administração</h2>
+        <p class="av-desc">Gerencie grupos de acesso, módulos e permissões dos usuários da plataforma.</p>
+      </div>
+
+      <div class="av-tabs">
+        <button class="av-tab active" onclick="setAdminTab('grupos', this)">👥 Grupos</button>
+        <button class="av-tab" onclick="setAdminTab('modulos', this)">🧩 Módulos</button>
+        <button class="av-tab" onclick="setAdminTab('permissoes', this)">🔐 Permissões</button>
+      </div>
+
+      <!-- GRUPOS -->
+      <div id="admin-panel-grupos" class="av-panel">
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="tbl-grupos">
+            <thead>
+              <tr>
+                <th>Cor</th>
+                <th>Código</th>
+                <th>Nome</th>
+                <th>Descrição</th>
+                <th>Módulos</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-grupos-body"><!-- JS --></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MÓDULOS -->
+      <div id="admin-panel-modulos" class="av-panel hidden">
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Icone</th>
+                <th>Código</th>
+                <th>Nome</th>
+                <th>Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>📚</td>
+                <td><code>AULAS</code></td>
+                <td>Aulas</td>
+                <td>Catálogo, visualização e PDF de aulas</td>
+              </tr>
+              <tr>
+                <td>📖</td>
+                <td><code>EDITORA</code></td>
+                <td>E-Books</td>
+                <td>Montagem de cadernos didáticos</td>
+              </tr>
+              <tr>
+                <td>🏆</td>
+                <td><code>AVALIACAO</code></td>
+                <td>Avaliação</td>
+                <td>Quiz, QV e Certificados</td>
+              </tr>
+              <tr>
+                <td>📊</td>
+                <td><code>RELATORIOS</code></td>
+                <td>Relatórios</td>
+                <td>Progresso, notas e presença</td>
+              </tr>
+              <tr>
+                <td>⚙️</td>
+                <td><code>ADMIN</code></td>
+                <td>Administração</td>
+                <td>Usuários, grupos e permissões</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PERMISSÕES -->
+      <div id="admin-panel-permissoes" class="av-panel hidden">
+        <div class="av-form-row" style="margin-bottom:20px">
+          <div class="form-group">
+            <label>Ver permissões do grupo</label>
+            <select id="perm-grupo-sel" onchange="renderPermissoes(this.value)">
+              <option value="">Selecionar grupo...</option>
+            </select>
+          </div>
+        </div>
+        <div class="admin-table-wrap" id="perm-table-wrap">
+          <div class="av-placeholder"><span class="av-placeholder-icon">🔐</span>
+            <p>Selecione um grupo para ver as permissões.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="modulo hidden" id="modulo-viewer">
+      <div class="viewer-layout">
+
+        <!-- Sidebar -->
+        <aside class="viewer-sidebar" id="viewer-sidebar">
+          <button class="btn-back" onclick="voltarCatalogo()">
+            ← Voltar ao catálogo
+          </button>
+          <div class="sidebar-meta" id="sidebar-meta">
+            <!-- preenchido via JS -->
+          </div>
+          <nav class="sidebar-sections" id="sidebar-sections">
+            <!-- seções [1]-[8] geradas via JS -->
+          </nav>
+          <div class="sidebar-actions">
+            <button class="btn-primary btn-pdf" onclick="exportarPDF()">
+              <span>🖨️</span> Exportar PDF
+            </button>
+          </div>
+        </aside>
+
+        <!-- Conteúdo principal -->
+        <div class="viewer-content" id="viewer-content">
+          <!-- renderizado via JS com marked.js -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════ PRINT OVERLAY ═══════════════════════ -->
+  <div id="print-cover" class="print-cover hidden">
+    <!-- gerado dinamicamente para PDF -->
+  </div>
+
+  <!-- ═══════════════════════ TOAST ═══════════════════════ -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="/js/app.js"></script>
+</body>
+
+</html>

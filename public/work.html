@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overfloow Work</title>
+    <meta name="description" content="Ponto CLT, Apontamentos e Gestão de Projetos BPO — Overfloow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/css/work.css" />
+
+    <!-- Fundo de partículas igual ao Hub -->
+    <style>
+        .bg-orbs {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: .1;
+            animation: orbFloat 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: #C4380C;
+            top: -150px;
+            left: -100px;
+        }
+
+        .orb-2 {
+            width: 350px;
+            height: 350px;
+            background: #1A3A6C;
+            bottom: -80px;
+            right: 5%;
+            animation-delay: -8s;
+        }
+
+        .orb-3 {
+            width: 250px;
+            height: 250px;
+            background: #5A2D82;
+            top: 40%;
+            right: -50px;
+            animation-delay: -14s;
+        }
+
+        @keyframes orbFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(30px, -30px) scale(1.05);
+            }
+
+            66% {
+                transform: translate(-15px, 20px) scale(.97);
+            }
+        }
+
+        body {
+            position: relative;
+        }
+
+        .work-header,
+        .work-main {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+    <!-- ══ SIDEBAR ══════════════════════════════════════════ -->
+    <aside class="work-sidebar" id="work-sidebar">
+        <!-- Brand -->
+        <div class="sidebar-brand">
+            <div class="work-brand">
+                <div class="work-brand-name">Overfloow Work</div>
+                <div class="work-brand-sub">BPO · Ponto &amp; Projetos</div>
+            </div>
+        </div>
+
+        <!-- Botão Hub -->
+        <button class="btn-hub" onclick="window.location.href='/hub'">
+            <span>⬅</span>
+            <span class="btn-hub-label">Voltar ao Hub</span>
+        </button>
+
+        <!-- Nav (preenchida via JS) -->
+        <nav class="work-nav" id="work-nav"></nav>
+
+        <!-- Footer: avatar + toggle -->
+        <div class="sidebar-footer">
+            <div class="w-badge" id="w-badge" onclick="toggleWMenu()">
+                <span id="w-initial">?</span>
+                <div class="w-menu" id="w-menu">
+                    <div class="w-menu-header">
+                        <div class="w-menu-nome" id="w-menu-nome">—</div>
+                        <div class="w-menu-grupo" id="w-menu-grupo">—</div>
+                    </div>
+                    <button class="w-menu-btn" onclick="wLogout()">🚪 Sair</button>
+                </div>
+            </div>
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-nome" id="sidebar-user-nome">—</div>
+                <div class="sidebar-user-grupo" id="sidebar-user-grupo">—</div>
+            </div>
+            <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="Recolher menu">◀</button>
+        </div>
+    </aside>
+
+    <!-- ══ MAIN ════════════════════════════════════════════ -->
+    <main class="work-main">
+
+        <!-- ── MÓDULO: PONTO + ATIVIDADES (painel duplo) ────── -->
+        <section id="mod-ponto" class="work-modulo">
+            <div class="work-painel-duplo">
+
+                <!-- Card de Ponto CLT -->
+                <div class="w-card ponto-card">
+                    <div class="ponto-header">
+                        <div>
+                            <div class="ponto-date" id="ponto-date">—</div>
+                            <div class="ponto-weekday" id="ponto-weekday">—</div>
+                        </div>
+                        <div class="ponto-local-badge" id="ponto-local-badge">Home Office</div>
+                    </div>
+
+                    <!-- Select local de trabalho -->
+                    <div class="ponto-local-select">
+                        <select id="ponto-local" onchange="atualizarLocal()">
+                            <option value="HOME_OFFICE">🏠 Home Office</option>
+                            <option value="CLIENTE">🏢 Instalações do Cliente</option>
+                            <option value="ESCRITORIO">🏬 Escritório</option>
+                        </select>
+                    </div>
+
+                    <!-- Timeline do dia -->
+                    <div class="ponto-timeline" id="ponto-timeline">
+                        <div class="ponto-empty">Nenhum registro hoje. Marque sua entrada!</div>
+                    </div>
+
+                    <!-- Botão principal de ação CLT -->
+                    <button class="ponto-btn-action" id="ponto-btn-main" onclick="registrarPonto()">
+                        <span>🟢</span> Registrar Entrada
+                    </button>
+
+                    <!-- Botões extras: HE e BH -->
+                    <div class="ponto-btns-extra" id="ponto-btns-extra" style="display:none">
+                        <button class="ponto-btn-sm" style="color:#8B5CF6;border-color:rgba(139,92,246,.4)" id="btn-he"
+                            onclick="registrarHE()">
+                            ⚡ Hora Extra
+                        </button>
+                        <button class="ponto-btn-sm" style="color:#3A7BD5;border-color:rgba(58,123,213,.4)" id="btn-bh"
+                            onclick="registrarBH()">
+                            🏦 Banco Horas
+                        </button>
+                    </div>
+
+                    <!-- Totais do dia -->
+                    <div class="ponto-totais">
+                        <div class="ponto-total-item">
+                            <div class="ponto-total-val" id="total-normal">0h00</div>
+                            <div class="ponto-total-label">Normal</div>
+                        </div>
+                        <div class="ponto-total-item">
+                            <div class="ponto-total-val" id="total-he" style="color:#8B5CF6">0h00</div>
+                            <div class="ponto-total-label">Extra (HE)</div>
+                        </div>
+                        <div class="ponto-total-item">
+                            <div class="ponto-total-val" id="total-bh" style="color:#3A7BD5">0h00</div>
+                            <div class="ponto-total-label">Banco Horas</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card de Apontamentos -->
+                <div class="w-card apont-card">
+                    <div class="apont-header">
+                        <div>
+                            <div class="apont-title">📋 Apontamentos</div>
+                            <div class="section-desc" style="font-size:.8rem;margin-top:2px" id="apont-date-label">—
+                            </div>
+                        </div>
+                        <button class="btn-novo" onclick="toggleFormApont()">+ Nova Atividade</button>
+                    </div>
+
+                    <!-- Form de novo apontamento -->
+                    <div class="apont-form hidden" id="apont-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Cliente</label>
+                                <select id="apont-cliente" onchange="filtrarProjetos()">
+                                    <option value="">Selecionar cliente...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Projeto</label>
+                                <select id="apont-projeto">
+                                    <option value="">Selecionar projeto...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Hora Início</label>
+                                <input type="time" id="apont-inicio" />
+                            </div>
+                            <div class="form-group">
+                                <label>Hora Fim</label>
+                                <input type="time" id="apont-fim" />
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo</label>
+                                <select id="apont-tipo">
+                                    <option value="NORMAL">Normal</option>
+                                    <option value="HE">Hora Extra</option>
+                                    <option value="BH_CREDITO">Banco de Horas</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:12px">
+                            <label>Descrição do que foi feito</label>
+                            <textarea id="apont-desc"
+                                placeholder="Descreva brevemente a atividade realizada..."></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn-cancel" onclick="toggleFormApont()">Cancelar</button>
+                            <button class="btn-save" onclick="salvarApont()">Salvar Apontamento</button>
+                        </div>
+                    </div>
+
+                    <!-- Lista de apontamentos do dia -->
+                    <div class="apont-list" id="apont-list">
+                        <div class="apont-empty">
+                            <span class="apont-empty-icon">📋</span>
+                            Nenhuma atividade registrada hoje.<br>Clique em <strong>+ Nova Atividade</strong> para
+                            começar.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── MÓDULO: PROJETOS ──────────────────────────────── -->
+        <section id="mod-projetos" class="work-modulo hidden">
+            <div class="proj-header">
+                <div>
+                    <div class="proj-title">🗂️ Projetos</div>
+                    <div class="section-desc">Projetos ativos por cliente. HE = Hora Extra | BH = Banco de Horas</div>
+                </div>
+                <button class="btn-novo" onclick="toggleFormProjeto()">+ Novo Projeto</button>
+            </div>
+
+            <!-- Form de Novo Projeto -->
+            <div id="proj-form" class="apont-form hidden" style="margin-bottom:16px;">
+                <div class="apont-form-grid">
+                    <div class="form-group">
+                        <label>Cliente *</label>
+                        <select id="proj-cliente" class="form-control">
+                            <option value="">Selecionar cliente...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nome do Projeto *</label>
+                        <input type="text" id="proj-nome" class="form-control" placeholder="Ex: Integração OMIE">
+                    </div>
+                    <div class="form-group">
+                        <label>Cor</label>
+                        <input type="color" id="proj-cor" class="form-control" value="#3A7BD5" style="height:40px;padding:4px;">
+                    </div>
+                    <div class="form-group" style="display:flex;gap:16px;align-items:flex-end;padding-bottom:4px;">
+                        <label><input type="checkbox" id="proj-he"> Permitir HE</label>
+                        <label><input type="checkbox" id="proj-bh"> Permitir BH</label>
+                    </div>
+                </div>
+                <button class="btn-save" onclick="salvarProjeto()">+ Salvar Projeto</button>
+            </div>
+
+            <div class="proj-grid" id="proj-grid">
+                <!-- preenchido via JS -->
+            </div>
+        </section>
+
+        <!-- ── MÓDULO: EQUIPE ────────────────────────────────── -->
+        <section id="mod-equipe" class="work-modulo hidden">
+            <div class="equipe-header">
+                <div>
+                    <div class="equipe-title">👥 Equipe & Jornadas</div>
+                    <div class="equipe-desc">Sócios e colaboradores · Jornadas CLT · Banco de Horas · Distribuição de
+                        Horas Março/2026</div>
+                </div>
+            </div>
+            <!-- Abas -->
+            <div class="equipe-tabs">
+                <button class="equipe-tab active" id="etab-equipe" onclick="setEquipeTab('equipe')">👤 Equipe</button>
+                <button class="equipe-tab" id="etab-jornadas" onclick="setEquipeTab('jornadas')">📋 Jornadas
+                    CLT</button>
+                <button class="equipe-tab" id="etab-dist" onclick="setEquipeTab('dist')">📊 Distribuição de
+                    Horas</button>
+            </div>
+            <!-- Conteúdo das abas -->
+            <div id="equipe-tab-equipe">
+                <div class="equipe-grid" id="equipe-grid"><!-- via JS --></div>
+            </div>
+            <div id="equipe-tab-jornadas" class="hidden">
+                <div class="jornada-config-grid" id="jornada-config-grid"><!-- via JS --></div>
+            </div>
+            <div id="equipe-tab-dist" class="hidden">
+                <div class="w-card" style="padding:24px">
+                    <table class="dist-table" id="dist-table"><!-- via JS --></table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── MÓDULO: RELATÓRIOS ────────────────────────────── -->
+        <section id="mod-relatorios" class="work-modulo hidden">
+            <div class="equipe-header">
+                <div>
+                    <div class="equipe-title">📊 Relatórios</div>
+                    <div class="equipe-desc" id="relat-periodo-label">Março/2026 · Dados consolidados</div>
+                </div>
+                <button class="btn-novo" onclick="wToast('Exportação PDF disponível em breve!','warn')">⬇ Exportar
+                    PDF</button>
+            </div>
+
+            <!-- Abas -->
+            <div class="equipe-tabs">
+                <button class="equipe-tab active" id="rtab-kpis" onclick="setRelatTab('kpis')">📈 Visão Geral</button>
+                <button class="equipe-tab" id="rtab-horas" onclick="setRelatTab('horas')">⏱️ Horas</button>
+                <button class="equipe-tab" id="rtab-rateio" onclick="setRelatTab('rateio')">💰 Rateio Sócios</button>
+                <button class="equipe-tab" id="rtab-reimb" onclick="setRelatTab('reimb')">💳 Reembolsos</button>
+            </div>
+
+            <!-- ABA: Visão Geral -->
+            <div id="relat-tab-kpis">
+                <div class="relat-grid" id="relat-kpis-grid"><!-- via JS --></div>
+                <div class="w-card" style="padding:24px;margin-top:12px">
+                    <h3 style="font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;margin-bottom:16px">🏆 Top
+                        Projetos — Horas do Mês</h3>
+                    <div id="relat-top-projetos"><!-- via JS --></div>
+                </div>
+            </div>
+
+            <!-- ABA: Horas -->
+            <div id="relat-tab-horas" class="hidden">
+                <div class="w-card" style="padding:24px">
+                    <h3 style="font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;margin-bottom:16px">⏱️
+                        Horas por Projeto — Março/2026</h3>
+                    <table class="dist-table" id="relat-horas-table"><!-- via JS --></table>
+                </div>
+                <div class="w-card" style="padding:24px;margin-top:12px">
+                    <h3 style="font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;margin-bottom:16px">👥
+                        Horas por Colaborador — Banco de Horas</h3>
+                    <table class="dist-table" id="relat-bh-table"><!-- via JS --></table>
+                </div>
+            </div>
+
+            <!-- ABA: Rateio Sócios -->
+            <div id="relat-tab-rateio" class="hidden">
+                <div class="w-card" style="padding:24px;margin-bottom:12px">
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+                        <h3 style="font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700">💰 Simulador de
+                            Rateio de Lucros — Sócios</h3>
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <label style="font-size:.82rem;color:var(--text-muted)">Lucro líquido (R$):</label>
+                            <input type="number" id="rateio-lucro" value="15000" min="0" step="500"
+                                oninput="calcularRateio()"
+                                style="width:120px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-ele);color:var(--text);font-weight:700;text-align:right" />
+                        </div>
+                    </div>
+                    <div
+                        style="font-size:.78rem;color:var(--text-muted);margin-bottom:16px;padding:10px 14px;background:var(--bg-ele);border-radius:8px;border-left:3px solid var(--work-primary)">
+                        📌 Rateio proporcional às horas trabalhadas pelos sócios no mês. Colaboradores CLT recebem
+                        salário fixo (não participam do rateio de lucros).
+                    </div>
+                    <table class="dist-table" id="relat-rateio-table"><!-- via JS --></table>
+                </div>
+            </div>
+
+            <!-- ABA: Reembolsos -->
+            <div id="relat-tab-reimb" class="hidden">
+                <div class="relat-grid" id="relat-reimb-kpis"><!-- via JS KPIs de reembolso --></div>
+                <div class="w-card" style="padding:24px;margin-top:12px">
+                    <h3 style="font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;margin-bottom:16px">💳
+                        Solicitações de Reembolso</h3>
+                    <table class="dist-table" id="relat-reimb-table"><!-- via JS --></table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── MÓDULO: REUNIÕES ───────────────────────────────── -->
+        <section id="mod-reunioes" class="work-modulo hidden">
+            <div class="reun-header">
+                <div>
+                    <div class="reun-title">📅 Reuniões</div>
+                    <div class="reun-desc">Agenda · Pauta · Ata · Participantes · Projetos e Clientes</div>
+                </div>
+                <button class="btn-novo" id="btn-nova-reuniao" onclick="novaReuniao()">+ Nova Reunião</button>
+            </div>
+
+            <!-- Abas -->
+            <div class="reun-tabs">
+                <button class="reun-tab active" id="rtab2-agenda" onclick="setReunTab('agenda')">📆 Agenda
+                    Semanal</button>
+                <button class="reun-tab" id="rtab2-lista" onclick="setReunTab('lista')">📋 Todas as Reuniões</button>
+                <button class="reun-tab" id="rtab2-form" onclick="setReunTab('form')" id="btn-nova-reuniao2"
+                    style="display:none">➕ Nova</button>
+            </div>
+
+            <!-- ABA: Agenda semanal -->
+            <div id="reun-tab-agenda">
+                <div class="reun-semana" id="reun-semana-grid"><!-- via JS --></div>
+                <div class="reun-lista" id="reun-lista-dia"><!-- reuniões do dia selecionado --></div>
+            </div>
+
+            <!-- ABA: Lista todas -->
+            <div id="reun-tab-lista" class="hidden">
+                <div class="reun-lista" id="reun-lista-todas"><!-- via JS --></div>
+            </div>
+
+            <!-- ABA: Formulário nova reunião -->
+            <div id="reun-tab-form" class="hidden">
+                <div class="reun-form-wrap">
+                    <div class="reun-form-title">📅 Nova Reunião</div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:2">
+                            <label>Título da Reunião *</label>
+                            <input type="text" id="reun-titulo" placeholder="Ex: Alinhamento BPO — KIFF FOODS" />
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo</label>
+                            <select id="reun-tipo">
+                                <option value="CLIENTE">🏢 Com Cliente</option>
+                                <option value="PROJETO">🗂️ Projeto</option>
+                                <option value="INTERNA">🏠 Interna</option>
+                                <option value="ONE_ON_ONE">🤝 1-on-1</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Data *</label>
+                            <input type="date" id="reun-data" />
+                        </div>
+                        <div class="form-group">
+                            <label>Hora Início</label>
+                            <input type="time" id="reun-hora-inicio" value="09:00" />
+                        </div>
+                        <div class="form-group">
+                            <label>Hora Fim</label>
+                            <input type="time" id="reun-hora-fim" value="10:00" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Local (físico)</label>
+                            <input type="text" id="reun-local"
+                                placeholder="Ex: Sala Overfloow, Escritório do Cliente..." />
+                        </div>
+                        <div class="form-group">
+                            <label>🔗 Link Online (Meet/Zoom/Teams)</label>
+                            <input type="url" id="reun-link" placeholder="https://meet.google.com/..." />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Cliente (opcional)</label>
+                            <select id="reun-cliente" onchange="reun_filtrarProjetos()">
+                                <option value="">— Nenhum / Interno —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Projeto (opcional — filtra pelo cliente)</label>
+                            <select id="reun-projeto">
+                                <option value="">— Nenhum —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:12px">
+                        <label>Participantes</label>
+                        <div id="reun-participantes-check"
+                            style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:6px">
+                            <!-- via JS -->
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:12px">
+                        <label>📋 Pauta</label>
+                        <textarea id="reun-pauta" rows="4"
+                            placeholder="1. Ponto 1&#10;2. Ponto 2&#10;3. Discussão de próximos passos"
+                            style="width:100%;background:var(--bg-ele);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:10px;font-size:.85rem;resize:vertical"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-cancel" onclick="setReunTab('agenda')">Cancelar</button>
+                        <button class="btn-save" onclick="salvarReuniao()">💾 Salvar Reunião</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal de detalhes/pauta/ata (renderizado via JS) -->
+            <div id="reun-modal-container"></div>
+        </section>
+
+        <!-- ── MÓDULO: ADMIN ─────────────────────────────────── -->
+        <section id="mod-admin" class="work-modulo hidden">
+            <div class="section-title">⚙️ Administração Work</div>
+            <div class="section-desc" style="margin-bottom:24px">Gerenciamento de jornadas, clientes e configurações do
+                sistema</div>
+            <div class="w-card" style="padding:24px;text-align:center;color:var(--text-muted)">
+                <div style="font-size:3rem;margin-bottom:12px">🏗️</div>
+                <p style="font-size:.95rem;font-weight:600;margin-bottom:8px">Módulo Admin em construção</p>
+                <p style="font-size:.85rem">Configuração de jornadas CLT, clientes, projetos e banco de horas em breve.
+                </p>
+            </div>
+        </section>
+
+        <!-- ── MÓDULO: REEMBOLSO DE DESPESAS ─────────────────────── -->
+        <section id="mod-reembolso" class="work-modulo hidden">
+            <div class="reimb-header">
+                <div>
+                    <div class="reimb-title">💳 Reembolso de Despesas</div>
+                    <div class="reimb-desc">Envie comprovantes para reembolso de combustível, refeições,
+                        softwares e demais despesas do projeto.</div>
+                </div>
+                <button class="btn-novo" onclick="novaReimb()">+ Nova Solicitação</button>
+            </div>
+
+            <!-- Formulário nova solicitação -->
+            <div class="reimb-form-wrap hidden" id="reimb-form">
+                <div class="reimb-form-step">Passo 1 de 2</div>
+                <div class="reimb-form-title">📋 Dados da Solicitação</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        <select id="reimb-cliente" onchange="reimb_filtrarProjetos()">
+                            <option value="">Selecionar cliente...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Projeto</label>
+                        <select id="reimb-projeto">
+                            <option value="">Selecionar projeto...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Período de referência</label>
+                        <input type="text" id="reimb-periodo" placeholder="Ex: Março/2026" />
+                    </div>
+                    <div class="form-group">
+                        <label>Observação geral</label>
+                        <input type="text" id="reimb-obs" placeholder="Contexto geral da solicitação..." />
+                    </div>
+                </div>
+
+                <hr class="form-divider" />
+                <div class="reimb-form-step">Dados Bancários para Pagamento</div>
+                <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:12px">
+                    ℹ️ Preencha <strong>PIX</strong> ou dados bancários completos para receber o reembolso.
+                </div>
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label>Chave PIX</label>
+                        <input type="text" id="reimb-pix" placeholder="CPF, e-mail ou telefone" />
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo da Chave</label>
+                        <select id="reimb-pix-tipo">
+                            <option value="CPF">CPF</option>
+                            <option value="EMAIL">E-mail</option>
+                            <option value="TELEFONE">Telefone</option>
+                            <option value="CNPJ">CNPJ</option>
+                            <option value="CHAVE_ALEATORIA">Chave Aleatória</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Banco</label>
+                        <input type="text" id="reimb-banco" placeholder="Ex: Nubank, Itaú..." />
+                    </div>
+                </div>
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label>Agência</label>
+                        <input type="text" id="reimb-agencia" placeholder="0000-0" />
+                    </div>
+                    <div class="form-group">
+                        <label>Conta</label>
+                        <input type="text" id="reimb-conta" placeholder="00000-0" />
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Conta</label>
+                        <select id="reimb-tipo-conta">
+                            <option value="CORRENTE">Corrente</option>
+                            <option value="POUPANCA">Poupança</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr class="form-divider" />
+                <div class="reimb-form-step">Passo 2 de 2</div>
+                <div class="reimb-form-title">🧾 Comprovantes de Despesas</div>
+                <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:12px">
+                    Adicione cada despesa individualmente. Documentos aceitos pela legislação brasileira:<br />
+                    <strong>NF-e · NFS-e · NFC-e · CT-e · CF-e/SAT · RPA · Recibo · Extrato bancário</strong>
+                </div>
+
+                <!-- Cabeçalho da grid de itens -->
+                <div id="reimb-itens-header"
+                    style="display:grid;gap:4px;grid-template-columns:120px 1fr 85px 100px 90px 32px;padding:0 4px 6px;font-size:.67rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;border-bottom:1px solid var(--border)">
+                    <span>Doc Fiscal</span>
+                    <span>Fornecedor</span>
+                    <span>Valor (R$)</span>
+                    <span>Pagamento</span>
+                    <span>Comprovante</span>
+                    <span></span>
+                </div>
+                <div class="reimb-itens-form" id="reimb-itens-rows"></div>
+                <button class="btn-add-row" onclick="addReimbItem()">+ Adicionar despesa</button>
+
+                <div class="reimb-total-preview">
+                    <span style="font-size:.82rem;font-weight:400;color:var(--text-muted)">Total solicitado:</span>
+                    <span id="reimb-total-val">R$ 0,00</span>
+                </div>
+
+                <div class="form-actions" style="margin-top:16px">
+                    <button class="btn-cancel" onclick="cancelarReimb()">Cancelar</button>
+                    <button class="btn-save" onclick="salvarReimbRascunho()">💾 Salvar Rascunho</button>
+                    <button class="btn-novo" style="font-size:.85rem;padding:8px 18px" onclick="enviarReimb()">📤 Enviar
+                        para Aprovação</button>
+                </div>
+            </div>
+
+            <!-- Lista de solicitações -->
+            <div id="reimb-lista"></div>
+        </section>
+
+        <!-- ── MÓDULO: CONTROLE DE CUSTOS DE CLIENTES ──────── -->
+        <section id="mod-custos" class="work-modulo hidden">
+            <div class="w-card" style="margin-bottom:20px">
+                <div class="apont-header">
+                    <div>
+                        <div class="apont-title">💰 Custos de Clientes</div>
+                        <div class="section-desc">Infraestrutura, IA, domínios e outros custos arcados pela Overfloow
+                        </div>
+                    </div>
+                    <button class="btn-novo" onclick="toggleFormCusto()">+ Novo Custo</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="relat-kpi-grid" style="margin-top:16px" id="custos-kpis"></div>
+
+                <!-- Filtros -->
+                <div class="form-row" style="margin-top:16px;gap:10px;flex-wrap:wrap">
+                    <select id="custo-filter-cliente" onchange="renderCustos()"
+                        style="background:var(--bg-ele);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:var(--radius-sm);font-size:.83rem;flex:1;min-width:140px">
+                        <option value="">Todos os Clientes</option>
+                    </select>
+                    <select id="custo-filter-decisao" onchange="renderCustos()"
+                        style="background:var(--bg-ele);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:var(--radius-sm);font-size:.83rem;flex:1;min-width:140px">
+                        <option value="">Todas as Decisões</option>
+                        <option value="PENDENTE">⏳ Pendente</option>
+                        <option value="REEMBOLSO">↩️ Reembolso</option>
+                        <option value="FATURAMENTO">🧾 Faturamento</option>
+                        <option value="ABSORVIDO">🏢 Absorvido (Overfloow)</option>
+                    </select>
+                    <input id="custo-filter-busca" type="text" placeholder="🔍 Buscar..." oninput="renderCustos()"
+                        style="background:var(--bg-ele);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:var(--radius-sm);font-size:.83rem;flex:2;min-width:160px" />
+                </div>
+            </div>
+
+            <!-- Form Novo Custo -->
+            <div class="w-card hidden" id="custo-form-card" style="margin-bottom:20px;border-color:rgba(224,91,26,.3)">
+                <div class="apont-title" style="margin-bottom:16px">📝 Registrar Custo</div>
+                <div class="form-grid"
+                    style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+                    <div class="form-group">
+                        <label>Cliente *</label>
+                        <select id="custo-cliente">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Categoria *</label>
+                        <select id="custo-categoria">
+                            <option value="">Selecione...</option>
+                            <option value="INFRA_CLOUD">☁️ Infraestrutura Cloud (DO, AWS, GCP)</option>
+                            <option value="IA_CREDITOS">🤖 Créditos de IA (Google, OpenAI)</option>
+                            <option value="DOMINIO">🌐 Domínio / DNS</option>
+                            <option value="EMAIL_HOSTING">📧 Hospedagem de E-mail</option>
+                            <option value="SOFTWARE_SaaS">💿 Software / SaaS</option>
+                            <option value="WHATSAPP_API">💬 WhatsApp Business API</option>
+                            <option value="CERTIFICADO_SSL">🔐 Certificado SSL</option>
+                            <option value="STORAGE">📦 Storage / Backup</option>
+                            <option value="LICENCA">📄 Licença de Software</option>
+                            <option value="OUTRO">📌 Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fornecedor *</label>
+                        <input type="text" id="custo-fornecedor" placeholder="Ex: DigitalOcean, Google" />
+                    </div>
+                    <div class="form-group">
+                        <label>Data da Despesa *</label>
+                        <input type="date" id="custo-data" />
+                    </div>
+                    <div class="form-group">
+                        <label>Valor (R$) *</label>
+                        <input type="number" id="custo-valor" placeholder="0,00" step="0.01" min="0" />
+                    </div>
+                    <div class="form-group">
+                        <label>Moeda original</label>
+                        <select id="custo-moeda">
+                            <option value="BRL">🇧🇷 BRL — Real</option>
+                            <option value="USD">🇺🇸 USD — Dólar</option>
+                            <option value="EUR">🇪🇺 EUR — Euro</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label>Descrição *</label>
+                        <input type="text" id="custo-descricao" placeholder="Ex: Droplet 2GB NYC3 — Março/2026" />
+                    </div>
+                    <div class="form-group">
+                        <label>Decisão</label>
+                        <select id="custo-decisao">
+                            <option value="PENDENTE">⏳ Pendente</option>
+                            <option value="REEMBOLSO">↩️ Reembolso do Cliente</option>
+                            <option value="FATURAMENTO">🧾 Adicionar ao Faturamento</option>
+                            <option value="ABSORVIDO">🏢 Absorvido pela Overfloow</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Comprovante (link ou ref.)</label>
+                        <input type="text" id="custo-comprovante" placeholder="Link do recibo, NF, extrato..." />
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label>Observações</label>
+                        <input type="text" id="custo-obs" placeholder="Informações adicionais..." />
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top:16px">
+                    <button class="btn-cancel" onclick="cancelarCusto()">Cancelar</button>
+                    <button class="btn-novo" onclick="salvarCusto()">💾 Registrar Custo</button>
+                </div>
+            </div>
+
+            <!-- Lista de custos -->
+            <div class="w-card" id="custos-lista-card">
+                <div id="custos-lista"></div>
+            </div>
+        </section>
+
+        <!-- ── MÓDULO: ADMIN ─────────────────────────────────── -->
+        <section id="mod-admin" class="work-modulo hidden">
+            <div class="proj-header">
+                <div>
+                    <div class="proj-title">⚙️ Administração</div>
+                    <div class="section-desc">Gestão de clientes, usuários e configurações do sistema</div>
+                </div>
+            </div>
+
+            <!-- Abas -->
+            <div class="reun-tabs" style="margin-bottom:20px">
+                <button class="reun-tab-btn active" id="adm-tab-clientes-btn" onclick="setAdminTab('clientes')">🏢 Clientes</button>
+                <button class="reun-tab-btn" id="adm-tab-usuarios-btn" onclick="setAdminTab('usuarios')">👥 Usuários</button>
+            </div>
+
+            <!-- Aba Clientes -->
+            <div id="adm-tab-clientes">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px">
+                    <div style="font-weight:600; font-size:1rem">Clientes cadastrados</div>
+                    <button class="btn-novo" onclick="toggleFormAdminCliente()">+ Novo Cliente</button>
+                </div>
+                <!-- Form novo cliente -->
+                <div class="apont-form hidden" id="admin-cliente-form" style="margin-bottom:20px">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Razão Social *</label>
+                            <input type="text" id="adm-cli-razao" placeholder="Nome empresarial completo" />
+                        </div>
+                        <div class="form-group">
+                            <label>Nome / Apelido</label>
+                            <input type="text" id="adm-cli-nome" placeholder="Como é chamado internamente" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>CNPJ</label>
+                            <input type="text" id="adm-cli-cnpj" placeholder="00.000.000/0001-00" />
+                        </div>
+                        <div class="form-group">
+                            <label>Segmento</label>
+                            <input type="text" id="adm-cli-segmento" placeholder="Ex: ALIMENTAÇÃO, TECNOLOGIA..." />
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-cancel" onclick="toggleFormAdminCliente()">Cancelar</button>
+                        <button class="btn-save" onclick="salvarAdminCliente()">💾 Salvar Cliente</button>
+                    </div>
+                </div>
+                <!-- Lista de clientes -->
+                <div class="w-card" style="overflow:hidden">
+                    <div id="admin-clientes-lista" style="padding:8px"></div>
+                </div>
+            </div>
+
+            <!-- Aba Usuários -->
+            <div id="adm-tab-usuarios" class="hidden">
+                <div style="font-weight:600; font-size:1rem; margin-bottom:16px">Usuários do sistema</div>
+                <div class="w-card" style="overflow:hidden">
+                    <div id="admin-usuarios-lista" style="padding:8px"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- Toast -->
+    <div class="w-toast-container" id="w-toast-container"></div>
+
+    <script src="/js/work_modules.js"></script>
+    <script src="/js/work.js"></script>
+</body>
+
+</html>

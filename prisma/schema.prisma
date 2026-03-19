@@ -1,0 +1,1483 @@
+// ===============================================================
+// Overfloow Hub — Prisma Schema v1
+// Prisma v5 + PostgreSQL + driver adapter
+// schema: overfloow | Março/2026
+// ===============================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters", "multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["overfloow"]
+}
+
+// -- Usuários internos da equipe Overfloow ----------------------
+model Usuario {
+  id_usuario       Int                    @id @default(autoincrement())
+  nome             String                 @db.VarChar(200)
+  email            String                 @unique @db.VarChar(200)
+  celular          String?                @db.VarChar(50)
+  whatsapp         String?                @db.VarChar(50)
+  senha_hash       String
+  ativo            Boolean                @default(true)
+  criado_em        DateTime               @default(now()) @db.Timestamp(6)
+  atualizado_em    DateTime               @default(now()) @updatedAt @db.Timestamp(6)
+  perfis           UsuarioPerfil[]
+  pontos           PontoRegistro[]
+  apontamentos     Apontamento[]
+  reembolsos       ReembolsoSolicitacao[]
+  config           ColaboradorConfig?
+  reunioes_criadas Reuniao[]              @relation("ReunioesCriadas")
+
+  @@map("usuarios")
+  @@schema("overfloow")
+}
+
+// -- Perfis de acesso (roles) -----------------------------------
+model Perfil {
+  id_perfil Int             @id @default(autoincrement())
+  nome      String          @unique @db.VarChar(100)
+  descricao String?
+  ativo     Boolean         @default(true)
+  criado_em DateTime        @default(now()) @db.Timestamp(6)
+  usuarios  UsuarioPerfil[]
+
+  @@map("perfis")
+  @@schema("overfloow")
+}
+
+// -- Relação usuário <-> perfil (N:N) ---------------------------
+model UsuarioPerfil {
+  id_usuario Int
+  id_perfil  Int
+  criado_em  DateTime @default(now()) @db.Timestamp(6)
+  usuario    Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  perfil     Perfil   @relation(fields: [id_perfil], references: [id_perfil], onDelete: Cascade)
+
+  @@id([id_usuario, id_perfil])
+  @@map("usuarios_perfis")
+  @@schema("overfloow")
+}
+
+// -- Clientes contratantes --------------------------------------
+model Cliente {
+  id_cliente    Int      @id @default(autoincrement())
+  nome          String   @db.VarChar(200)
+  razao_social  String?  @db.VarChar(200)
+  cnpj          String?  @db.VarChar(20)
+  email         String?  @db.VarChar(200)
+  telefone      String?  @db.VarChar(50)
+  endereco      String?
+  cidade        String?  @db.VarChar(100)
+  estado        String?  @db.VarChar(2)
+  cep           String?  @db.VarChar(10)
+  pais          String   @default("Brasil") @db.VarChar(100)
+  segmento      String?  @db.VarChar(100)
+  porte         String?  @db.VarChar(50)
+  status        String   @default("ativo") @db.VarChar(50)
+  id_schema     String?  @unique @db.VarChar(100)
+  ativo         Boolean  @default(true)
+  criado_em     DateTime @default(now()) @db.Timestamp(6)
+  atualizado_em DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  custos       CustoCliente[]
+  apontamentos Apontamento[]
+  projetos     Projeto[]
+  reembolsos   ReembolsoSolicitacao[]
+  reunioes     Reuniao[]
+
+  @@map("clientes")
+  @@schema("overfloow")
+}
+
+// -- Custos/Despesas de Clientes --------------------------------
+model CustoCliente {
+  id_custo      Int      @id @default(autoincrement())
+  id_cliente    Int
+  id_projeto    Int?     // FK opcional para projetos
+  descricao     String   @db.VarChar(300)
+  categoria     String   @db.VarChar(100)
+  valor         Decimal  @db.Decimal(10, 2)
+  data_custo    DateTime @db.Date
+  status        String   @default("Pendente") @db.VarChar(50)
+  comprovante   String?  @db.Text
+  observacoes   String?  @db.Text
+  criado_em     DateTime @default(now()) @db.Timestamp(6)
+  atualizado_em DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  cliente  Cliente  @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade)
+  projeto  Projeto? @relation("CustosCliente", fields: [id_projeto], references: [id_projeto], onDelete: SetNull)
+
+  @@map("custos_clientes")
+  @@schema("overfloow")
+}
+
+// -- Controle de Ponto (Batidas do Relógio) ---------------------
+model PontoRegistro {
+  id_registro Int      @id @default(autoincrement())
+  id_usuario  Int
+  tipo        String   @db.VarChar(50) // ENTRADA, SAIDA_ALMOCO, RETORNO_ALMOCO, SAIDA
+  hora        DateTime @db.Timestamp(6)
+  local       String   @default("HOME_OFFICE") @db.VarChar(50) // HOME_OFFICE, CLIENTE, ESCRITORIO
+  criado_em   DateTime @default(now()) @db.Timestamp(6)
+
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@map("ponto_registros")
+  @@schema("overfloow")
+}
+
+// -- Apontamentos de Atividades (Timesheet) ---------------------
+model Apontamento {
+  id_apontamento Int      @id @default(autoincrement())
+  id_usuario     Int
+  id_cliente     Int
+  id_projeto     Int?
+  inicio         String   @db.VarChar(5) // "08:00"
+  fim            String   @db.VarChar(5) // "12:00"
+  total_minutos  Int
+  descricao      String   @db.Text
+  tipo           String   @db.VarChar(50) // NORMAL, HE, BH_CREDITO
+  data_ref       DateTime @db.Date
+  criado_em      DateTime @default(now()) @db.Timestamp(6)
+
+  usuario  Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  cliente  Cliente  @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade)
+  projeto  Projeto? @relation(fields: [id_projeto], references: [id_projeto], onDelete: SetNull)
+
+  @@map("apontamentos")
+  @@schema("overfloow")
+}
+
+// -- Projetos ---------------------------------------------------
+model Projeto {
+  id_projeto    Int      @id @default(autoincrement())
+  id_cliente    Int
+  nome          String   @db.VarChar(200)
+  status        String   @default("ATIVO") @db.VarChar(50)
+  permite_he    Boolean  @default(false)
+  permite_bh    Boolean  @default(false)
+  cor           String   @default("#3A7BD5") @db.VarChar(20)
+  criado_em     DateTime @default(now()) @db.Timestamp(6)
+  atualizado_em DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  cliente       Cliente              @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade)
+  apontamentos  Apontamento[]
+  reembolsos    ReembolsoSolicitacao[]
+  reunioes      Reuniao[]
+  custos        CustoCliente[]       @relation("CustosCliente")
+
+  @@map("projetos")
+  @@schema("overfloow")
+}
+
+// -- Reembolsos (Cabeçalho e Itens) -----------------------------
+model ReembolsoSolicitacao {
+  id_solicitacao Int     @id @default(autoincrement())
+  id_usuario     Int
+  id_cliente     Int
+  id_projeto     Int?
+  periodo_ref    String  @db.VarChar(50)
+  observacao     String? @db.Text
+  status         String  @default("PENDENTE") @db.VarChar(50)
+  valor_total    Decimal @default(0.00) @db.Decimal(10, 2)
+
+  chave_pix  String? @db.VarChar(200)
+  tipo_pix   String? @db.VarChar(50)
+  banco      String? @db.VarChar(100)
+  agencia    String? @db.VarChar(20)
+  conta      String? @db.VarChar(20)
+  tipo_conta String? @db.VarChar(50)
+
+  criado_em     DateTime @default(now()) @db.Timestamp(6)
+  atualizado_em DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  usuario  Usuario              @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  cliente  Cliente              @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade)
+  projeto  Projeto?             @relation(fields: [id_projeto], references: [id_projeto], onDelete: SetNull)
+  itens    ReembolsoItem[]
+
+  @@map("reembolso_solicitacoes")
+  @@schema("overfloow")
+}
+
+model ReembolsoItem {
+  id_item        Int     @id @default(autoincrement())
+  id_solicitacao Int
+  doc_fiscal     String  @db.VarChar(100)
+  fornecedor     String  @db.VarChar(200)
+  forma_pgto     String  @db.VarChar(100)
+  valor          Decimal @db.Decimal(10, 2)
+  arquivo_url    String? @db.Text
+
+  solicitacao ReembolsoSolicitacao @relation(fields: [id_solicitacao], references: [id_solicitacao], onDelete: Cascade)
+
+  @@map("reembolso_itens")
+  @@schema("overfloow")
+}
+
+// -- Configurações e Jornada de Trabalho (RH) -------------------
+model ColaboradorConfig {
+  id_config    Int    @id @default(autoincrement())
+  id_usuario   Int    @unique
+  cargo        String @db.VarChar(100)
+  tipo_vinculo String @default("CLT") @db.VarChar(50)
+  jornada      String @default("CLT_40") @db.VarChar(50)
+  horas_mes    Int    @default(200)
+  saldo_bh_min Int    @default(0)
+  cor_badge    String @default("#4B5563") @db.VarChar(20)
+
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@map("colaboradores_config")
+  @@schema("overfloow")
+}
+
+// -- Reuniões e Pautas ------------------------------------------
+model Reuniao {
+  id_reuniao Int      @id @default(autoincrement())
+  titulo     String   @db.VarChar(200)
+  data_hora  DateTime @db.Timestamp(6)
+  duracao_m  Int      @default(60)
+  status     String   @default("AGENDADA") @db.VarChar(50)
+  link_meet  String?  @db.Text
+  pauta      String?  @db.Text
+  ata        String?  @db.Text
+  id_cliente Int?
+  id_projeto Int?     // FK opcional para projetos
+  criador_id Int
+  criado_em  DateTime @default(now()) @db.Timestamp(6)
+
+  cliente Cliente? @relation(fields: [id_cliente], references: [id_cliente], onDelete: SetNull)
+  projeto Projeto? @relation(fields: [id_projeto], references: [id_projeto], onDelete: SetNull)
+  criador Usuario  @relation("ReunioesCriadas", fields: [criador_id], references: [id_usuario], onDelete: Cascade)
+
+  @@map("reunioes")
+  @@schema("overfloow")
+}
+
+model AreasInternas {
+  id_area_interna Int      @id @default(autoincrement())
+  nome            String
+  descricao       String?
+  ativo           Boolean  @default(true)
+  criado_em       DateTime @default(now())
+
+  @@map("areas_internas")
+  @@schema("overfloow")
+}
+
+model Pessoas {
+  id_pessoa  Int      @id @default(autoincrement())
+  id_usuario Int?
+  nome       String
+  cargo      String?
+  email      String?
+  celular    String?
+  whatsapp   String?
+  telegram   String?
+  ativo      Boolean  @default(true)
+  criado_em  DateTime @default(now())
+
+  @@map("pessoas")
+  @@schema("overfloow")
+}
+
+model AreaResponsaveis {
+  id_area_responsavel Int      @id @default(autoincrement())
+  id_area_interna     Int
+  id_pessoa           Int
+  tipo_responsavel    String   @default("principal")
+  ativo               Boolean  @default(true)
+  criado_em           DateTime @default(now())
+
+  @@map("area_responsaveis")
+  @@schema("overfloow")
+}
+
+model Agentes {
+  id_agente                Int      @id @default(autoincrement())
+  nome                     String
+  descricao                String?
+  categoria                String?
+  tipo_agente              String   @default("externo")
+  escopo                   String   @default("cliente")
+  id_area_interna          Int?
+  id_usuario_responsavel   Int?
+  id_usuario_escalonamento Int?
+  ativo                    Boolean  @default(true)
+  versao                   Int      @default(1)
+  criado_em                DateTime @default(now())
+  atualizado_em            DateTime @default(now())
+
+  @@map("agentes")
+  @@schema("overfloow")
+}
+
+model Competencias {
+  id_competencia Int     @id @default(autoincrement())
+  dimensao       String
+  nome           String
+  descricao      String?
+  nivel_min      Int     @default(0)
+  nivel_max      Int     @default(5)
+
+  @@map("competencias")
+  @@schema("overfloow")
+}
+
+model AgentesCompetencias {
+  id_agente_competencia Int     @id @default(autoincrement())
+  id_agente             Int
+  id_competencia        Int
+  nivel_minimo          Int     @default(1)
+  nivel_maximo          Int     @default(5)
+  obrigatoria           Boolean @default(true)
+
+  @@map("agentes_competencias")
+  @@schema("overfloow")
+}
+
+model MaturidadeNiveis {
+  id_maturidade       Int     @id @default(autoincrement())
+  nivel               Int
+  nivel_nome          String
+  dimensao            String
+  descricao           String?
+  autonomia_permitida Int?
+  risco_permitido     Int?
+  profundidade_cham   Int?
+
+  @@map("maturidade_niveis")
+  @@schema("overfloow")
+}
+
+model AgentesMaturidade {
+  id_agente_maturidade Int      @id @default(autoincrement())
+  id_agente            Int
+  id_maturidade_atual  Int
+  id_maturidade_maxima Int
+  avaliado_em          DateTime @default(now())
+
+  @@map("agentes_maturidade")
+  @@schema("overfloow")
+}
+
+model Politicas {
+  id_politica Int      @id @default(autoincrement())
+  area        String?
+  nome        String
+  descricao   String
+  tipo        String
+  ativo       Boolean  @default(true)
+  versao      Int      @default(1)
+  criado_em   DateTime @default(now())
+
+  @@map("politicas")
+  @@schema("overfloow")
+}
+
+model AgentesPoliticas {
+  id_agente_politica Int      @id @default(autoincrement())
+  id_agente          Int
+  id_politica        Int
+  obrigatoria        Boolean  @default(true)
+  criado_em          DateTime @default(now())
+
+  @@map("agentes_politicas")
+  @@schema("overfloow")
+}
+
+model ClientesAreas {
+  id_area    Int      @id @default(autoincrement())
+  id_cliente Int
+  codigo     String?
+  nome       String
+  descricao  String?
+  ativo      Boolean  @default(true)
+  criado_em  DateTime @default(now())
+
+  @@map("clientes_areas")
+  @@schema("overfloow")
+}
+
+model ClientesPessoas {
+  id_pessoa  Int      @id @default(autoincrement())
+  id_cliente Int
+  nome       String
+  cargo      String?
+  email      String?
+  celular    String?
+  whatsapp   String?
+  telegram   String?
+  ativo      Boolean  @default(true)
+  criado_em  DateTime @default(now())
+
+  @@map("clientes_pessoas")
+  @@schema("overfloow")
+}
+
+model ClientesAreasResponsaveis {
+  id_area_responsavel Int      @id @default(autoincrement())
+  id_cliente          Int
+  id_area             Int
+  id_pessoa           Int
+  tipo_responsavel    String   @default("principal")
+  ativo               Boolean  @default(true)
+  criado_em           DateTime @default(now())
+
+  @@map("clientes_areas_responsaveis")
+  @@schema("overfloow")
+}
+
+model Processos {
+  id_processo Int      @id @default(autoincrement())
+  codigo      String   @unique
+  nome        String
+  descricao   String?
+  area_codigo String?
+  nivel_cham  String?
+  ativo       Boolean  @default(true)
+  criado_em   DateTime @default(now())
+
+  @@map("processos")
+  @@schema("overfloow")
+}
+
+model Funis {
+  id_funil    Int      @id @default(autoincrement())
+  id_processo Int
+  nome        String
+  descricao   String?
+  versao      Int      @default(1)
+  ativo       Boolean  @default(true)
+  criado_em   DateTime @default(now())
+
+  @@map("funis")
+  @@schema("overfloow")
+}
+
+model FunilFases {
+  id_fase          Int      @id @default(autoincrement())
+  id_funil         Int
+  ordem            Int
+  nome             String
+  descricao        String?
+  criterio_entrada String?
+  criterio_saida   String?
+  tipo             String   @default("automatica")
+  sla_horas        Int?
+  criado_em        DateTime @default(now())
+
+  @@map("funil_fases")
+  @@schema("overfloow")
+}
+
+model FunilFaseAgentes {
+  id_fase_agente Int      @id @default(autoincrement())
+  id_fase        Int
+  id_agente      Int
+  papel          String   @default("executor")
+  criado_em      DateTime @default(now())
+
+  @@map("funil_fase_agentes")
+  @@schema("overfloow")
+}
+
+model ClientesProcessos {
+  id_cliente_processo Int       @id @default(autoincrement())
+  id_cliente          Int
+  id_processo         Int
+  id_area             Int?
+  id_funil            Int?
+  status              String    @default("ativo")
+  ativado_em          DateTime  @default(now())
+  encerrado_em        DateTime?
+  configuracao        Json?     @default("{}")
+
+  @@map("clientes_processos")
+  @@schema("overfloow")
+}
+
+model Planos {
+  id_plano      Int      @id @default(autoincrement())
+  nome          String   @unique
+  descricao     String?
+  preco_mensal  Decimal?
+  preco_anual   Decimal?
+  max_agentes   Int?
+  max_processos Int?
+  max_canais    Int?
+  trial_dias    Int      @default(7)
+  ativo         Boolean  @default(true)
+  criado_em     DateTime @default(now())
+
+  @@map("planos")
+  @@schema("overfloow")
+}
+
+model PlanosItens {
+  id_plano_item Int     @id @default(autoincrement())
+  id_plano      Int
+  descricao     String
+  incluido      Boolean @default(true)
+
+  @@map("planos_itens")
+  @@schema("overfloow")
+}
+
+model Contratacoes {
+  id_contratacao Int       @id @default(autoincrement())
+  id_cliente     Int
+  id_plano       Int
+  status         String    @default("ativo")
+  data_inicio    DateTime  @default(now())
+  data_fim       DateTime?
+  valor_mensal   Decimal?
+  forma_pgto     String?
+  auto_renovar   Boolean   @default(true)
+  criado_em      DateTime  @default(now())
+
+  @@map("contratacoes")
+  @@schema("overfloow")
+}
+
+model AtivacoesAiah {
+  id_ativacao     Int       @id @default(autoincrement())
+  id_contratacao  Int
+  id_cliente      Int
+  id_agente       Int
+  id_processo     Int?
+  id_area_cliente Int?
+  nome_aiah       String?
+  status          String    @default("pendente")
+  schema_cliente  String?
+  ativado_em      DateTime?
+  encerrado_em    DateTime?
+  criado_em       DateTime  @default(now())
+  atualizado_em   DateTime  @default(now())
+
+  @@map("ativacoes_aiah")
+  @@schema("overfloow")
+}
+
+model AtivacaoStatusLog {
+  id_log          Int      @id @default(autoincrement())
+  id_ativacao     Int
+  status_anterior String?
+  status_novo     String
+  motivo          String?
+  id_usuario      Int?
+  criado_em       DateTime @default(now())
+
+  @@map("ativacao_status_log")
+  @@schema("overfloow")
+}
+
+model Canais {
+  id_canal  Int     @id @default(autoincrement())
+  nome      String  @unique
+  descricao String?
+  icone     String?
+  ativo     Boolean @default(true)
+
+  @@map("canais")
+  @@schema("overfloow")
+}
+
+model ClientesCanais {
+  id_cliente_canal Int       @id @default(autoincrement())
+  id_ativacao      Int
+  id_canal         Int
+  numero_telefone  String?
+  token_api        String?
+  webhook_url      String?
+  identificador    String?
+  status           String    @default("pendente")
+  configuracao     Json?     @default("{}")
+  testado_em       DateTime?
+  criado_em        DateTime  @default(now())
+
+  @@map("clientes_canais")
+  @@schema("overfloow")
+}
+
+model AgentesPrompt {
+  id_prompt          Int      @id @default(autoincrement())
+  id_agente          Int
+  versao             Int      @default(1)
+  prompt_sistema     String
+  contexto           String?
+  instrucoes_do      String?
+  instrucoes_dont    String?
+  cenarios_armadilha String?
+  ativo              Boolean  @default(true)
+  criado_em          DateTime @default(now())
+
+  @@map("agentes_prompt")
+  @@schema("overfloow")
+}
+
+model ClientesPromptCustom {
+  id_prompt_custom Int      @id @default(autoincrement())
+  id_ativacao      Int
+  nome_aiah        String?
+  tom_voz          String?
+  apresentacao     String?
+  restricoes_extra String?
+  idioma           String   @default("pt-BR")
+  criado_em        DateTime @default(now())
+  atualizado_em    DateTime @default(now())
+
+  @@map("clientes_prompt_custom")
+  @@schema("overfloow")
+}
+
+model AiahSessoes {
+  id_sessao             Int       @id @default(autoincrement())
+  id_ativacao           Int
+  id_canal              Int?
+  identificador_usuario String?
+  nome_usuario          String?
+  status                String    @default("ativa")
+  iniciada_em           DateTime  @default(now())
+  encerrada_em          DateTime?
+  total_mensagens       Int       @default(0)
+  escalada              Boolean   @default(false)
+
+  @@map("aiah_sessoes")
+  @@schema("overfloow")
+}
+
+model AiahMensagens {
+  id_mensagem Int      @id @default(autoincrement())
+  id_sessao   Int
+  origem      String
+  conteudo    String
+  tokens      Int?
+  latencia_ms Int?
+  criado_em   DateTime @default(now())
+
+  @@map("aiah_mensagens")
+  @@schema("overfloow")
+}
+
+model AiahEscalamentos {
+  id_escalamento    Int       @id @default(autoincrement())
+  id_sessao         Int
+  motivo            String
+  nivel             Int       @default(1)
+  id_pessoa_destino Int?
+  status            String    @default("aberto")
+  criado_em         DateTime  @default(now())
+  resolvido_em      DateTime?
+
+  @@map("aiah_escalamentos")
+  @@schema("overfloow")
+}
+
+model AiahKpis {
+  id_kpi                  Int      @id @default(autoincrement())
+  id_ativacao             Int
+  periodo                 DateTime
+  total_sessoes           Int      @default(0)
+  total_mensagens         Int      @default(0)
+  total_escalamentos      Int      @default(0)
+  taxa_resolucao          Decimal?
+  tempo_resposta_medio_ms Int?
+  satisfacao_media        Decimal?
+  tokens_consumidos       Int?
+  custo_estimado          Decimal?
+  criado_em               DateTime @default(now())
+
+  @@map("aiah_kpis")
+  @@schema("overfloow")
+}
+
+model CrmEmpresas {
+  id_empresa     Int      @id @default(autoincrement())
+  nome           String
+  razao_social   String?
+  cnpj           String?
+  segmento       String?
+  porte          String?
+  cidade         String?
+  estado         String?
+  pais           String   @default("Brasil")
+  website        String?
+  linkedin       String?
+  id_cliente     Int?
+  status         String   @default("prospect")
+  id_responsavel Int?
+  id_campanha    Int?
+  id_canal_mkt   Int?
+  id_midia       Int?
+  criado_em      DateTime @default(now())
+  atualizado_em  DateTime @default(now())
+
+  @@map("crm_empresas")
+  @@schema("overfloow")
+}
+
+model CrmContatos {
+  id_contato Int      @id @default(autoincrement())
+  id_empresa Int
+  nome       String
+  cargo      String?
+  email      String?
+  telefone   String?
+  whatsapp   String?
+  linkedin   String?
+  decisor    Boolean  @default(false)
+  ativo      Boolean  @default(true)
+  criado_em  DateTime @default(now())
+
+  @@map("crm_contatos")
+  @@schema("overfloow")
+}
+
+model CrmOportunidades {
+  id_oportunidade Int       @id @default(autoincrement())
+  id_empresa      Int
+  id_contato      Int?
+  id_responsavel  Int?
+  id_agente       Int?
+  titulo          String
+  descricao       String?
+  valor_estimado  Decimal?
+  probabilidade   Int?
+  estagio         String    @default("prospeccao")
+  data_prevista   DateTime?
+  data_fechamento DateTime?
+  motivo_perda    String?
+  vertical        String?
+  id_campanha     Int?
+  id_canal_mkt    Int?
+  id_midia        Int?
+  criado_em       DateTime  @default(now())
+  atualizado_em   DateTime  @default(now())
+
+  @@map("crm_oportunidades")
+  @@schema("overfloow")
+}
+
+model CrmInteracoes {
+  id_interacao      Int       @id @default(autoincrement())
+  id_empresa        Int?
+  id_oportunidade   Int?
+  id_contato        Int?
+  id_usuario        Int?
+  id_agente         Int?
+  tipo              String
+  assunto           String?
+  descricao         String?
+  resultado         String?
+  proxima_acao      String?
+  data_proxima_acao DateTime?
+  duracao_min       Int?
+  id_campanha       Int?
+  id_canal_mkt      Int?
+  id_midia          Int?
+  criado_em         DateTime  @default(now())
+
+  @@map("crm_interacoes")
+  @@schema("overfloow")
+}
+
+model CrmPropostas {
+  id_proposta     Int       @id @default(autoincrement())
+  id_oportunidade Int
+  numero          String    @unique
+  titulo          String
+  descricao       String?
+  valor_total     Decimal?
+  validade_dias   Int       @default(15)
+  status          String    @default("enviada")
+  url_documento   String?
+  enviada_em      DateTime?
+  respondida_em   DateTime?
+  criado_em       DateTime  @default(now())
+
+  @@map("crm_propostas")
+  @@schema("overfloow")
+}
+
+model CrmTags {
+  id_tag Int     @id @default(autoincrement())
+  nome   String  @unique
+  cor    String? @default("#3A7BD5")
+
+  @@map("crm_tags")
+  @@schema("overfloow")
+}
+
+model CrmEmpresasTags {
+  id_empresa Int
+  id_tag     Int
+
+  @@id([id_empresa, id_tag])
+  @@map("crm_empresas_tags")
+  @@schema("overfloow")
+}
+
+model SrmFornecedores {
+  id_fornecedor  Int      @id @default(autoincrement())
+  nome           String
+  razao_social   String?
+  cnpj           String?
+  segmento       String?
+  id_cliente     Int?
+  website        String?
+  linkedin       String?
+  email          String?
+  telefone       String?
+  cidade         String?
+  estado         String?
+  pais           String   @default("Brasil")
+  tipo           String   @default("produto")
+  status         String   @default("ativo")
+  id_responsavel Int?
+  avaliacao      Decimal?
+  criado_em      DateTime @default(now())
+  atualizado_em  DateTime @default(now())
+
+  @@map("srm_fornecedores")
+  @@schema("overfloow")
+}
+
+model SrmContatos {
+  id_contato    Int      @id @default(autoincrement())
+  id_fornecedor Int
+  nome          String
+  cargo         String?
+  email         String?
+  telefone      String?
+  whatsapp      String?
+  linkedin      String?
+  principal     Boolean  @default(false)
+  criado_em     DateTime @default(now())
+
+  @@map("srm_contatos")
+  @@schema("overfloow")
+}
+
+model SrmContratos {
+  id_contrato   Int       @id @default(autoincrement())
+  id_fornecedor Int
+  id_cliente    Int?
+  numero        String?
+  descricao     String?
+  objeto        String?
+  valor_mensal  Decimal?
+  valor_total   Decimal?
+  inicio        DateTime?
+  termino       DateTime?
+  auto_renovar  Boolean   @default(false)
+  status        String    @default("ativo")
+  url_contrato  String?
+  criado_em     DateTime  @default(now())
+
+  @@map("srm_contratos")
+  @@schema("overfloow")
+}
+
+model SrmCotacoes {
+  id_cotacao    Int       @id @default(autoincrement())
+  id_fornecedor Int
+  id_cliente    Int?
+  numero        String    @unique
+  descricao     String
+  valor         Decimal?
+  prazo_entrega Int?
+  validade_dias Int       @default(15)
+  status        String    @default("pendente")
+  recebida_em   DateTime?
+  respondida_em DateTime?
+  criado_em     DateTime  @default(now())
+
+  @@map("srm_cotacoes")
+  @@schema("overfloow")
+}
+
+model SrmAvaliacoes {
+  id_avaliacao  Int      @id @default(autoincrement())
+  id_fornecedor Int
+  id_contrato   Int?
+  id_usuario    Int?
+  periodo       DateTime
+  qualidade     Int?
+  prazo         Int?
+  preco         Int?
+  atendimento   Int?
+  nota_geral    Decimal?
+  observacoes   String?
+  criado_em     DateTime @default(now())
+
+  @@map("srm_avaliacoes")
+  @@schema("overfloow")
+}
+
+model SrmInteracoes {
+  id_interacao      Int       @id @default(autoincrement())
+  id_fornecedor     Int?
+  id_contrato       Int?
+  id_usuario        Int?
+  id_agente         Int?
+  tipo              String
+  assunto           String?
+  descricao         String?
+  resultado         String?
+  proxima_acao      String?
+  data_proxima_acao DateTime?
+  criado_em         DateTime  @default(now())
+
+  @@map("srm_interacoes")
+  @@schema("overfloow")
+}
+
+model SrmConcorrentes {
+  id_concorrente Int      @id @default(autoincrement())
+  nome           String
+  segmento       String?
+  website        String?
+  linkedin       String?
+  pontos_fortes  String?
+  pontos_fracos  String?
+  posicionamento String?
+  id_responsavel Int?
+  ativo          Boolean  @default(true)
+  criado_em      DateTime @default(now())
+  atualizado_em  DateTime @default(now())
+
+  @@map("srm_concorrentes")
+  @@schema("overfloow")
+}
+
+model SrmInteligencia {
+  id_inteligencia Int      @id @default(autoincrement())
+  id_concorrente  Int
+  id_usuario      Int?
+  id_agente       Int?
+  tipo            String
+  titulo          String
+  descricao       String?
+  fonte           String?
+  impacto         String?
+  criado_em       DateTime @default(now())
+
+  @@map("srm_inteligencia")
+  @@schema("overfloow")
+}
+
+model SuporteSolicitacoes {
+  id_solicitacao    Int       @id @default(autoincrement())
+  id_cliente        Int?
+  id_ativacao       Int?
+  id_agente         Int?
+  id_pessoa_cliente Int?
+  id_area_interna   Int?
+  nivel_atual       Int       @default(1)
+  status            String    @default("aberta")
+  prioridade        String    @default("normal")
+  canal_origem      String?
+  titulo            String
+  descricao         String
+  sla_horas         Int       @default(24)
+  criado_em         DateTime  @default(now())
+  atualizado_em     DateTime  @default(now())
+  resolvido_em      DateTime?
+
+  @@map("suporte_solicitacoes")
+  @@schema("overfloow")
+}
+
+model SuporteHistorico {
+  id_historico   Int      @id @default(autoincrement())
+  id_solicitacao Int
+  nivel          Int
+  id_usuario     Int?
+  id_agente      Int?
+  acao           String
+  detalhes       String?
+  criado_em      DateTime @default(now())
+
+  @@map("suporte_historico")
+  @@schema("overfloow")
+}
+
+model SuporteAnexos {
+  id_anexo       Int      @id @default(autoincrement())
+  id_solicitacao Int
+  tipo           String?
+  descricao      String?
+  url            String?
+  criado_em      DateTime @default(now())
+
+  @@map("suporte_anexos")
+  @@schema("overfloow")
+}
+
+model AuditLog {
+  id_log       Int      @id @default(autoincrement())
+  tabela       String
+  operacao     String
+  id_registro  Int?
+  id_usuario   Int?
+  id_agente    Int?
+  dados_antes  Json?
+  dados_depois Json?
+  ip_origem    String?
+  user_agent   String?
+  criado_em    DateTime @default(now())
+
+  @@map("audit_log")
+  @@schema("overfloow")
+}
+
+model Erps {
+  id_erp          Int      @id @default(autoincrement())
+  codigo          String   @unique
+  nome            String
+  nome_oficial    String?
+  fabricante      String?
+  versao          String?
+  website         String?
+  doc_api_url     String?
+  tipo_auth       String   @default("api_key")
+  base_url        String?
+  sandbox_url     String?
+  suporta_webhook Boolean  @default(false)
+  segmento        String?
+  observacoes     String?
+  ativo           Boolean  @default(true)
+  criado_em       DateTime @default(now())
+
+  @@map("erps")
+  @@schema("overfloow")
+}
+
+model ErpsCapacidades {
+  id_capacidade     Int     @id @default(autoincrement())
+  id_erp            Int
+  entidade          String
+  pode_listar       Boolean @default(false)
+  pode_buscar       Boolean @default(false)
+  pode_criar        Boolean @default(false)
+  pode_atualizar    Boolean @default(false)
+  pode_deletar      Boolean @default(false)
+  suporta_filtro    Boolean @default(false)
+  suporta_paginacao Boolean @default(false)
+  endpoint_base     String?
+  observacoes       String?
+
+  @@unique([id_erp, entidade])
+  @@map("erps_capacidades")
+  @@schema("overfloow")
+}
+
+model ErpsMapeamentos {
+  id_mapeamento   Int     @id @default(autoincrement())
+  id_erp          Int
+  entidade        String
+  campo_overfloow String
+  campo_erp       String
+  tipo_dado       String  @default("string")
+  transformacao   String?
+  obrigatorio     Boolean @default(false)
+  direcao         String  @default("bidirecional")
+  ativo           Boolean @default(true)
+  observacoes     String?
+
+  @@map("erps_mapeamentos")
+  @@schema("overfloow")
+}
+
+model ErpsMapeamentosVersoes {
+  id_versao          Int      @id @default(autoincrement())
+  id_mapeamento      Int
+  campo_erp_anterior String?
+  campo_erp_novo     String?
+  motivo             String?
+  id_usuario         Int?
+  criado_em          DateTime @default(now())
+
+  @@map("erps_mapeamentos_versoes")
+  @@schema("overfloow")
+}
+
+model ClientesErps {
+  id_cliente_erp Int       @id @default(autoincrement())
+  id_cliente     Int
+  id_erp         Int
+  versao_erp     String?
+  status         String    @default("configurando")
+  data_ativacao  DateTime?
+  observacoes    String?
+  criado_em      DateTime  @default(now())
+  atualizado_em  DateTime  @default(now())
+
+  @@map("clientes_erps")
+  @@schema("overfloow")
+}
+
+model ImportacaoTemplates {
+  id_template   Int      @id @default(autoincrement())
+  entidade      String   @unique
+  nome          String
+  descricao     String?
+  formatos      String
+  url_template  String?
+  colunas       Json     @default("[]")
+  instrucoes    String?
+  versao        Int      @default(1)
+  ativo         Boolean  @default(true)
+  criado_em     DateTime @default(now())
+  atualizado_em DateTime @default(now())
+
+  @@map("importacao_templates")
+  @@schema("overfloow")
+}
+
+model MktMidias {
+  id_midia Int     @id @default(autoincrement())
+  codigo   String  @unique
+  nome     String
+  tipo     String  @default("digital")
+  ativo    Boolean @default(true)
+
+  @@map("mkt_midias")
+  @@schema("overfloow")
+}
+
+model MktCanais {
+  id_canal Int     @id @default(autoincrement())
+  codigo   String  @unique
+  nome     String
+  tipo     String  @default("inbound")
+  ativo    Boolean @default(true)
+
+  @@map("mkt_canais")
+  @@schema("overfloow")
+}
+
+model MktCampanhas {
+  id_campanha    Int       @id @default(autoincrement())
+  nome           String
+  descricao      String?
+  objetivo       String    @default("leads")
+  id_canal       Int?
+  id_midia       Int?
+  id_responsavel Int?
+  id_agente      Int?
+  status         String    @default("planejamento")
+  data_inicio    DateTime  @default(now())
+  data_fim       DateTime?
+  orcamento      Decimal?
+  gasto_real     Decimal?
+  meta_leads     Int?
+  meta_vendas    Int?
+  meta_receita   Decimal?
+  vertical       String?
+  utm_source     String?
+  utm_medium     String?
+  utm_campaign   String?
+  criado_em      DateTime  @default(now())
+  atualizado_em  DateTime  @default(now())
+
+  @@map("mkt_campanhas")
+  @@schema("overfloow")
+}
+
+model MktCampanhasProdutos {
+  id_campanha Int
+  id_agente   Int
+  id_plano    Int
+  Principal   Boolean @default(false)
+
+  @@id([id_campanha, id_agente, id_plano])
+  @@map("mkt_campanhas_produtos")
+  @@schema("overfloow")
+}
+
+model MktCampanhasKpis {
+  id_kpi          Int      @id @default(autoincrement())
+  id_campanha     Int
+  periodo         DateTime
+  impressoes      Int      @default(0)
+  cliques         Int      @default(0)
+  leads_gerados   Int      @default(0)
+  leads_qualif    Int      @default(0)
+  propostas       Int      @default(0)
+  vendas          Int      @default(0)
+  receita         Decimal  @default(0)
+  gasto_periodo   Decimal  @default(0)
+  cpa             Decimal?
+  cpl             Decimal?
+  ctr             Decimal?
+  taxa_conv_lead  Decimal?
+  taxa_conv_venda Decimal?
+  roi             Decimal?
+  criado_em       DateTime @default(now())
+
+  @@map("mkt_campanhas_kpis")
+  @@schema("overfloow")
+}
+
+model SiteTreinamentos {
+  id_treinamento Int       @id @default(autoincrement())
+  codigo         String    @unique
+  nome           String
+  descricao      String?
+  categoria      String?
+  nivel          String    @default("basico")
+  formato        String    @default("online")
+  carga_horaria  Decimal?
+  preco          Decimal?
+  preco_parceiro Decimal?
+  max_vagas      Int?
+  data_inicio    DateTime?
+  data_fim       DateTime?
+  id_instrutor   Int?
+  id_agente      Int?
+  link_inscricao String?
+  url_capa       String?
+  certificacao   Boolean   @default(true)
+  nivel_cham     String?
+  publicado      Boolean   @default(false)
+  criado_em      DateTime  @default(now())
+  atualizado_em  DateTime  @default(now())
+
+  @@map("site_treinamentos")
+  @@schema("overfloow")
+}
+
+model SiteTreinamentosInscricoes {
+  id_inscricao   Int       @id @default(autoincrement())
+  id_treinamento Int
+  id_cliente     Int?
+  id_lead_site   Int?
+  nome_aluno     String
+  email          String
+  telefone       String?
+  cpf            String?
+  status         String    @default("pendente")
+  valor_pago     Decimal?
+  forma_pgto     String?
+  pago_em        DateTime?
+  criado_em      DateTime  @default(now())
+
+  @@map("site_treinamentos_inscricoes")
+  @@schema("overfloow")
+}
+
+model SiteEbooks {
+  id_ebook       Int      @id @default(autoincrement())
+  titulo         String
+  subtitulo      String?
+  autores        String
+  descricao      String?
+  categoria      String?
+  tags           String?
+  num_paginas    Int?
+  isbn           String?
+  preco          Decimal  @default(0)
+  preco_parceiro Decimal?
+  url_capa       String?
+  url_preview    String?
+  url_download   String?
+  formato        String   @default("pdf")
+  publicado      Boolean  @default(false)
+  destaque       Boolean  @default(false)
+  criado_em      DateTime @default(now())
+  atualizado_em  DateTime @default(now())
+
+  @@map("site_ebooks")
+  @@schema("overfloow")
+}
+
+model SiteEbooksCompras {
+  id_compra         Int       @id @default(autoincrement())
+  id_ebook          Int
+  id_cliente        Int?
+  nome_comprador    String
+  email             String
+  cpf_cnpj          String?
+  valor_pago        Decimal   @default(0)
+  forma_pgto        String?
+  status            String    @default("pendente")
+  pago_em           DateTime?
+  url_download_temp String?
+  criado_em         DateTime  @default(now())
+
+  @@map("site_ebooks_compras")
+  @@schema("overfloow")
+}
+
+model SiteBpoServicos {
+  id_servico          Int     @id @default(autoincrement())
+  area_codigo         String
+  area_nome           String
+  processo_codigo     String?
+  processo_nome       String
+  descricao           String?
+  celulas_disponiveis String?
+  sla_horas           Int?
+  nivel_cham_min      String?
+  ativo               Boolean @default(true)
+  ordem_exibicao      Int     @default(0)
+
+  @@map("site_bpo_servicos")
+  @@schema("overfloow")
+}
+
+model SiteDepoimentos {
+  id_depoimento Int      @id @default(autoincrement())
+  id_cliente    Int?
+  nome_autor    String
+  cargo         String?
+  empresa       String?
+  segmento      String?
+  texto         String
+  nota          Int?
+  foto_url      String?
+  vertical      String?
+  aprovado      Boolean  @default(false)
+  destaque      Boolean  @default(false)
+  criado_em     DateTime @default(now())
+
+  @@map("site_depoimentos")
+  @@schema("overfloow")
+}
+
+model SiteFaq {
+  id_faq    Int      @id @default(autoincrement())
+  vertical  String?
+  tema      String?
+  pergunta  String
+  resposta  String
+  ordem     Int      @default(0)
+  publicado Boolean  @default(true)
+  criado_em DateTime @default(now())
+
+  @@map("site_faq")
+  @@schema("overfloow")
+}
+
+model SiteLeads {
+  id_lead_site       Int      @id @default(autoincrement())
+  nome               String
+  empresa            String?
+  cnpj_cpf           String?
+  email              String?
+  whatsapp           String?
+  telefone           String?
+  cidade             String?
+  estado             String?
+  segmento           String?
+  vertical_interesse String?
+  mensagem           String?
+  pagina_origem      String?
+  utm_source         String?
+  utm_medium         String?
+  utm_campaign       String?
+  id_campanha        Int?
+  id_canal_mkt       Int?
+  id_midia           Int?
+  status             String   @default("novo")
+  id_empresa_crm     Int?
+  id_agente          Int?
+  criado_em          DateTime @default(now())
+  atualizado_em      DateTime @default(now())
+
+  @@map("site_leads")
+  @@schema("overfloow")
+}
+
+model ClientesOnboarding {
+  id_onboarding          Int       @id @default(autoincrement())
+  id_cliente             Int
+  etapa_atual            Int       @default(1)
+  etapa_concluida        Int       @default(0)
+  dados_etapa1           Json?     @default("{}")
+  dados_etapa2           Json?     @default("{}")
+  dados_etapa3           Json?     @default("{}")
+  dados_etapa4           Json?     @default("{}")
+  dados_etapa5           Json?     @default("{}")
+  dados_etapa6           Json?     @default("{}")
+  status                 String    @default("em_andamento")
+  url_contrato_clicksign String?
+  assinado_em            DateTime?
+  concluido_em           DateTime?
+  criado_em              DateTime  @default(now())
+  atualizado_em          DateTime  @default(now())
+
+  @@map("clientes_onboarding")
+  @@schema("overfloow")
+}
+
+model ClientesDiagnostico {
+  id_diagnostico       Int       @id @default(autoincrement())
+  id_cliente           Int
+  area_principal       String?
+  area_codigo          String?
+  processos_interesse  String?
+  id_processo_inicial  Int?
+  id_funil_inicial     Int?
+  tem_erp              Boolean?
+  id_erp               Int?
+  erp_versao           String?
+  preferencia_carga    String?
+  maturidade_c         Int?
+  maturidade_h         Int?
+  maturidade_a         Int?
+  maturidade_m         Int?
+  objetivo_texto       String?
+  objetivo_prazo       String?
+  processado           Boolean   @default(false)
+  processado_em        DateTime?
+  id_agente_onboarding Int?
+  criado_em            DateTime  @default(now())
+
+  @@map("clientes_diagnostico")
+  @@schema("overfloow")
+}
+
+model ClientesConfiguracoes {
+  id_config      Int      @id @default(autoincrement())
+  id_cliente     Int      @unique
+  tema           String   @default("dark")
+  idioma         String   @default("pt-BR")
+  timezone       String   @default("America/Sao_Paulo")
+  notif_email    Boolean  @default(true)
+  notif_whatsapp Boolean  @default(true)
+  notif_hub      Boolean  @default(true)
+  cards_visiveis String
+  card_inicial   String   @default("iah")
+  atualizado_em  DateTime @default(now())
+
+  @@map("clientes_configuracoes")
+  @@schema("overfloow")
+}
+
+model PortalNotificacoes {
+  id_notif   Int       @id @default(autoincrement())
+  id_cliente Int?
+  id_usuario Int?
+  tipo       String
+  icone      String?
+  titulo     String
+  mensagem   String
+  link       String?
+  id_agente  Int?
+  lida       Boolean   @default(false)
+  lida_em    DateTime?
+  expira_em  DateTime?
+  criado_em  DateTime  @default(now())
+
+  @@map("portal_notificacoes")
+  @@schema("overfloow")
+}

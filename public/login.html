@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overfloow Platform — Acesso</title>
+    <meta name="description" content="Plataforma de Aulas e E-Books — Overfloow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <style>
+        /* ─── Reset ──────────────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #060B16;
+            color: #E4EAF6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ─── Fundo animado ──────────────────────────────────── */
+        .bg-orbs {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: .18;
+            animation: orbFloat 14s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: #1A3A6C;
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 360px;
+            height: 360px;
+            background: #3A7BD5;
+            bottom: -80px;
+            right: 10%;
+            animation-delay: -5s;
+        }
+
+        .orb-3 {
+            width: 250px;
+            height: 250px;
+            background: #5A2D82;
+            top: 40%;
+            right: -60px;
+            animation-delay: -9s;
+        }
+
+        @keyframes orbFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(30px, -30px) scale(1.05);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) scale(.96);
+            }
+        }
+
+        /* Grade sutil */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, .03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, .03) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+
+        /* ─── Card de Login ──────────────────────────────────── */
+        .login-card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+            background: rgba(14, 21, 37, .85);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 20px;
+            padding: 48px 44px;
+            box-shadow:
+                0 24px 80px rgba(0, 0, 0, .6),
+                0 0 0 1px rgba(58, 123, 213, .12),
+                inset 0 1px 0 rgba(255, 255, 255, .06);
+            animation: cardIn .6s cubic-bezier(.34, 1.56, .64, 1) both;
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* ─── Logotipo texto ─────────────────────────────────── */
+        .brand {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .brand-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1;
+            background: linear-gradient(135deg, #60A5FA 0%, #3A7BD5 50%, #A78BFA 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-sub {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, .35);
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .brand-divider {
+            width: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, #3A7BD5, #A78BFA);
+            border-radius: 2px;
+            margin: 14px auto 0;
+        }
+
+        /* ─── Título ─────────────────────────────────────────── */
+        .login-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #E4EAF6;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        /* ─── Formulário ─────────────────────────────────────── */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            font-size: .8rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, .5);
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .form-group input {
+            padding: 13px 16px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 10px;
+            color: #E4EAF6;
+            font-size: .95rem;
+            font-family: 'Inter', sans-serif;
+            transition: all .2s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #3A7BD5;
+            background: rgba(58, 123, 213, .08);
+            box-shadow: 0 0 0 3px rgba(58, 123, 213, .18);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, .2);
+        }
+
+        /* ─── Esqueceu senha ─────────────────────────────────── */
+        .forgot-link {
+            display: block;
+            text-align: right;
+            font-size: .8rem;
+            color: rgba(58, 123, 213, .8);
+            text-decoration: none;
+            margin-top: -8px;
+            margin-bottom: 24px;
+            transition: color .2s;
+        }
+
+        .forgot-link:hover {
+            color: #3A7BD5;
+        }
+
+        /* ─── Botão ──────────────────────────────────────────── */
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #3A7BD5, #2658A8);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer;
+            letter-spacing: .02em;
+            transition: all .25s;
+            box-shadow: 0 8px 24px rgba(58, 123, 213, .35);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, .15), transparent);
+            opacity: 0;
+            transition: opacity .25s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 32px rgba(58, 123, 213, .45);
+        }
+
+        .btn-login:hover::before {
+            opacity: 1;
+        }
+
+        .btn-login:active {
+            transform: none;
+        }
+
+        .btn-login:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ─── Erro ───────────────────────────────────────────── */
+        .error-msg {
+            margin-top: 14px;
+            padding: 11px 14px;
+            background: rgba(231, 76, 60, .1);
+            border: 1px solid rgba(231, 76, 60, .25);
+            border-radius: 8px;
+            color: #FF8575;
+            font-size: .86rem;
+            text-align: center;
+            display: none;
+        }
+
+        .error-msg.show {
+            display: block;
+            animation: shake .3s ease;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: none;
+            }
+
+            25% {
+                transform: translateX(-6px);
+            }
+
+            75% {
+                transform: translateX(6px);
+            }
+        }
+
+        /* ─── Demo hint ──────────────────────────────────────── */
+        .demo-hint {
+            margin-top: 20px;
+            padding: 12px 14px;
+            background: rgba(58, 123, 213, .06);
+            border: 1px solid rgba(58, 123, 213, .15);
+            border-radius: 8px;
+        }
+
+        .demo-hint p {
+            font-size: .8rem;
+            color: rgba(255, 255, 255, .4);
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .demo-hint code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .78rem;
+            color: #7AB4FF;
+            background: rgba(58, 123, 213, .15);
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        /* ─── Grupos de demo ─────────────────────────────────── */
+        .demo-roles {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .role-chip {
+            font-size: .72rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 99px;
+            cursor: pointer;
+            border: 1px solid;
+            transition: all .2s;
+        }
+
+        .role-chip:hover {
+            opacity: .8;
+            transform: translateY(-1px);
+        }
+
+        /* ─── Footer ─────────────────────────────────────────── */
+        .login-footer {
+            margin-top: 32px;
+            text-align: center;
+            font-size: .76rem;
+            color: rgba(255, 255, 255, .2);
+        }
+
+        .login-footer a {
+            color: rgba(58, 123, 213, .6);
+            text-decoration: none;
+        }
+
+        /* ─── Loading spinner ────────────────────────────────── */
+        .spinner-sm {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, .3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Fundo com orbs animados -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Card de Login -->
+    <div class="login-card">
+
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-name">Overfloow</div>
+            <div class="brand-sub">Platform</div>
+            <div class="brand-divider"></div>
+        </div>
+
+        <p class="login-title">Acesse sua conta</p>
+
+        <!-- Formulário -->
+        <form id="login-form" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" name="email" placeholder="seu@email.com.br" autocomplete="email"
+                    required />
+            </div>
+
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" name="senha" placeholder="••••••••" autocomplete="current-password"
+                    required />
+            </div>
+
+            <a href="#" class="forgot-link" onclick="return false">Esqueceu a senha?</a>
+
+            <button class="btn-login" type="submit" id="btn-login">
+                Entrar na plataforma
+            </button>
+        </form>
+
+        <!-- Mensagem de erro -->
+        <div class="error-msg" id="error-msg">
+            E-mail ou senha incorretos. Verifique e tente novamente.
+        </div>
+
+        <!-- Hint de demonstração -->
+        <div class="demo-hint">
+            <p>Modo demonstração — escolha um perfil de acesso:</p>
+            <div class="demo-roles" id="demo-roles"></div>
+        </div>
+
+        <!-- Rodapé -->
+        <div class="login-footer">
+            Overfloow Apoio Administrativo Ltda© · v1.0<br />
+            <a href="#">Termos de Uso</a> · <a href="#">Privacidade</a>
+        </div>
+    </div>
+
+    <script>
+        // ─── Perfis de demonstração ───────────────────────────────
+        const DEMO_USERS = [
+            { label: 'Admin', email: 'admin@overfloow.com', senha: 'admin123', cor: '#1A3A6C', grupo: 'ADMIN', modulos: ['AULAS', 'EDITORA', 'AVALIACAO', 'RELATORIOS', 'ADMIN'] },
+            { label: 'Gerente DEV', email: 'gerente@overfloow.com', senha: 'gerente123', cor: '#5A2D82', grupo: 'GERENTE_DEV', modulos: ['AULAS', 'EDITORA', 'AVALIACAO', 'RELATORIOS'] },
+            { label: 'Professor', email: 'professor@overfloow.com', senha: 'prof123', cor: '#0A6E5D', grupo: 'PROFESSOR', modulos: ['AULAS', 'AVALIACAO', 'RELATORIOS'] },
+            { label: 'Aluno', email: 'aluno@overfloow.com', senha: 'aluno123', cor: '#A07000', grupo: 'ALUNO', modulos: ['AULAS', 'AVALIACAO'] },
+        ];
+
+        // Renderizar chips de demo
+        const rolesEl = document.getElementById('demo-roles');
+        DEMO_USERS.forEach(u => {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'role-chip';
+            chip.textContent = u.label;
+            chip.style.cssText = `color:${u.cor};border-color:${u.cor};background:${u.cor}18`;
+            chip.onclick = () => {
+                document.getElementById('email').value = u.email;
+                document.getElementById('senha').value = u.senha;
+            };
+            rolesEl.appendChild(chip);
+        });
+
+        // ─── Handler de Login ─────────────────────────────────────
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value;
+            const btn = document.getElementById('btn-login');
+            const err = document.getElementById('error-msg');
+
+            // Animação de loading
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-sm"></span>Verificando…';
+            err.classList.remove('show');
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.ok) {
+                    // Salvar perfil na sessão, incluindo o token se houver
+                    const storeData = { ...data.usuario };
+                    if (data.token) storeData.token = data.token;
+                    
+                    sessionStorage.setItem('of_user', JSON.stringify(storeData));
+                    // Redirecionar ao Hub da plataforma
+                    window.location.href = '/hub';
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = 'Entrar na plataforma';
+                    err.textContent = data.erro || 'E-mail ou senha incorretos. Verifique e tente novamente.';
+                    err.classList.add('show');
+                }
+            } catch (error) {
+                console.error(error);
+                btn.disabled = false;
+                btn.textContent = 'Entrar na plataforma';
+                err.textContent = 'Erro de conexão com o servidor. Tente novamente.';
+                err.classList.add('show');
+            }
+        }
+
+        // ─── Se já autenticado, redirecionar ─────────────────────
+        if (sessionStorage.getItem('of_user')) {
+            window.location.href = '/hub';
+        }
+    </script>
+</body>
+
+</html>

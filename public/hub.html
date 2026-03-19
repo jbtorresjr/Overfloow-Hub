@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overfloow Platform</title>
+    <meta name="description" content="Plataforma Overfloow — Escolha seu app" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <style>
+        /* ─── Reset ──────────────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #060B16;
+            color: #E4EAF6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ─── Fundo animado ──────────────────────────────────── */
+        .bg-orbs {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: .14;
+            animation: orbFloat 18s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 600px;
+            height: 600px;
+            background: #1A3A6C;
+            top: -150px;
+            left: -150px;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: #C4380C;
+            bottom: -80px;
+            right: 5%;
+            animation-delay: -6s;
+        }
+
+        .orb-3 {
+            width: 280px;
+            height: 280px;
+            background: #5A2D82;
+            top: 35%;
+            right: -60px;
+            animation-delay: -12s;
+        }
+
+        @keyframes orbFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(40px, -40px) scale(1.05);
+            }
+
+            66% {
+                transform: translate(-20px, 25px) scale(.96);
+            }
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image: linear-gradient(rgba(255, 255, 255, .025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, .025) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+
+        /* ─── Layout ─────────────────────────────────────────── */
+        .hub-wrapper {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px 24px 60px;
+        }
+
+        /* ─── Header ─────────────────────────────────────────── */
+        .hub-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 56px;
+        }
+
+        .hub-brand {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .hub-brand-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            background: linear-gradient(135deg, #60A5FA, #3A7BD5, #A78BFA);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hub-brand-sub {
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, .25);
+            margin-top: 3px;
+        }
+
+        .hub-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .hub-user-info {
+            text-align: right;
+        }
+
+        .hub-user-nome {
+            font-size: .9rem;
+            font-weight: 600;
+            color: #E4EAF6;
+        }
+
+        .hub-user-grupo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .72rem;
+            color: rgba(255, 255, 255, .35);
+        }
+
+        .hub-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--av-cor, #3A7BD5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, .1);
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .hub-logout {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: rgba(14, 21, 37, .95);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 10px;
+            overflow: hidden;
+            min-width: 160px;
+            display: none;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, .5);
+        }
+
+        .hub-logout.open {
+            display: block;
+            animation: fadeDown .15s ease;
+        }
+
+        @keyframes fadeDown {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .hub-logout-btn {
+            width: 100%;
+            padding: 11px 16px;
+            background: transparent;
+            border: none;
+            color: #E74C3C;
+            font-size: .88rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+        .hub-logout-btn:hover {
+            background: rgba(231, 76, 60, .08);
+        }
+
+        /* ─── Welcome ────────────────────────────────────────── */
+        .hub-welcome {
+            margin-bottom: 48px;
+        }
+
+        .hub-welcome h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 12px;
+        }
+
+        .hub-welcome h1 .name-accent {
+            background: linear-gradient(135deg, #60A5FA, #A78BFA);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hub-welcome p {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, .45);
+            max-width: 520px;
+            line-height: 1.6;
+        }
+
+        /* ─── Seção de apps ──────────────────────────────────── */
+        .hub-section-title {
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, .3);
+            margin-bottom: 20px;
+        }
+
+        /* ─── Grid de apps ───────────────────────────────────── */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 48px;
+        }
+
+        /* ─── App Card ───────────────────────────────────────── */
+        .app-card {
+            background: rgba(14, 21, 37, .7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 20px;
+            padding: 32px 28px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all .3s cubic-bezier(.34, 1.2, .64, 1);
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            animation: cardIn .5s cubic-bezier(.34, 1.2, .64, 1) both;
+        }
+
+        .app-card:nth-child(1) {
+            animation-delay: .05s;
+        }
+
+        .app-card:nth-child(2) {
+            animation-delay: .12s;
+        }
+
+        .app-card:nth-child(3) {
+            animation-delay: .19s;
+        }
+
+        .app-card:nth-child(4) {
+            animation-delay: .26s;
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .app-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--app-cor), transparent 60%);
+            opacity: 0;
+            transition: opacity .3s;
+        }
+
+        .app-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            border: 1px solid var(--app-cor);
+            opacity: 0;
+            transition: opacity .3s;
+        }
+
+        .app-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .4),
+                0 0 0 1px var(--app-cor),
+                0 0 40px var(--app-glow);
+        }
+
+        .app-card:hover::before {
+            opacity: .07;
+        }
+
+        .app-card:hover::after {
+            opacity: 1;
+        }
+
+        /* card: em breve (locked) */
+        .app-card.locked {
+            opacity: .45;
+            cursor: not-allowed;
+            filter: grayscale(.5);
+        }
+
+        .app-card.locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .app-card.locked::before,
+        .app-card.locked::after {
+            display: none;
+        }
+
+        .app-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, .06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 0 30px var(--app-glow);
+            transition: transform .3s;
+        }
+
+        .app-card:hover .app-icon {
+            transform: scale(1.08) rotate(-3deg);
+        }
+
+        .app-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 4px;
+            color: #E4EAF6;
+        }
+
+        .app-name .app-sub {
+            font-weight: 400;
+            opacity: .6;
+        }
+
+        .app-desc {
+            font-size: .85rem;
+            color: rgba(255, 255, 255, .4);
+            line-height: 1.55;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 24px;
+            flex: 1;
+        }
+
+        .app-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-pills {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .app-pill {
+            font-size: .7rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 99px;
+            border: 1px solid var(--app-cor);
+            color: var(--app-cor);
+            background: var(--app-glow);
+        }
+
+        .app-arrow {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--app-glow);
+            border: 1px solid var(--app-cor);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: var(--app-cor);
+            transition: all .25s;
+            flex-shrink: 0;
+        }
+
+        .app-card:hover .app-arrow {
+            background: var(--app-cor);
+            color: #fff;
+            transform: translateX(3px);
+        }
+
+        .app-coming {
+            font-size: .7rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 99px;
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .1);
+            color: rgba(255, 255, 255, .35);
+        }
+
+        /* ─── Footer ─────────────────────────────────────────── */
+        .hub-foot {
+            text-align: center;
+            font-size: .75rem;
+            color: rgba(255, 255, 255, .18);
+            margin-top: auto;
+            padding-top: 32px;
+        }
+
+        .hub-foot a {
+            color: rgba(58, 123, 213, .5);
+            text-decoration: none;
+        }
+
+        /* ─── Responsive ─────────────────────────────────────── */
+        @media (max-width: 600px) {
+            .hub-header {
+                margin-bottom: 36px;
+            }
+
+            .hub-welcome {
+                margin-bottom: 32px;
+            }
+
+            .app-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hub-user-info {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="hub-wrapper">
+
+        <!-- Header -->
+        <header class="hub-header">
+            <div class="hub-brand">
+                <div class="hub-brand-name">Overfloow</div>
+                <div class="hub-brand-sub">Platform</div>
+            </div>
+            <div class="hub-user">
+                <div class="hub-user-info">
+                    <div class="hub-user-nome" id="hub-user-nome">—</div>
+                    <div class="hub-user-grupo" id="hub-user-grupo">—</div>
+                </div>
+                <div class="hub-avatar" id="hub-avatar" onclick="toggleLogout()">
+                    <span id="hub-initial">?</span>
+                    <div class="hub-logout" id="hub-logout">
+                        <button class="hub-logout-btn" onclick="logout()">🚪 Sair</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Welcome -->
+        <div class="hub-welcome">
+            <h1>Olá, <span class="name-accent" id="welcome-nome">—</span>! 👋</h1>
+            <p>Selecione o app que deseja acessar. Apenas as plataformas disponíveis para o seu perfil estão
+                habilitadas.</p>
+        </div>
+
+        <!-- Apps disponíveis -->
+        <div class="hub-section-title">Suas Plataformas</div>
+        <div class="app-grid" id="app-grid">
+            <!-- Preenchido via JS -->
+        </div>
+
+        <!-- Footer -->
+        <footer class="hub-foot">
+            Overfloow Apoio Administrativo Ltda© · Plataforma v1.0 ·
+            <a href="#">Suporte</a>
+        </footer>
+    </div>
+
+    <script>
+        // ─── Auth guard ───────────────────────────────────────
+        const _raw = sessionStorage.getItem('of_user');
+        const _user = _raw ? JSON.parse(_raw) : null;
+        if (!_user) { window.location.href = '/login'; }
+
+        // ─── Catálogo de apps ─────────────────────────────────
+        // Cada app tem: id, nome, sub, icone, desc, cor, glow, pills, href, requerGrupos
+        const APPS = [
+            {
+                id: 'learn',
+                nome: 'Overfloow',
+                sub: 'Learn',
+                icone: '📚',
+                desc: 'Plataforma de aulas e e-books. Trilhas de aprendizagem por processo, área e CHAM. Quizzes automáticos, avaliações QV e certificados.',
+                cor: '#3A7BD5',
+                glow: 'rgba(58,123,213,.18)',
+                pills: ['Aulas', 'Avaliação', 'Certificados'],
+                href: '/learn',
+                grupos: [], // vazio = disponível para todos
+            },
+            {
+                id: 'work',
+                nome: 'Overfloow',
+                sub: 'Work',
+                icone: '⏱️',
+                desc: 'Sistema de ponto CLT e gestão de projetos BPO. Apontamento de atividades por cliente e projeto. Banco de horas e relatórios de rateio.',
+                cor: '#E05B1A',
+                glow: 'rgba(224,91,26,.18)',
+                pills: ['Ponto CLT', 'Projetos', 'BPO'],
+                href: '/work',
+                grupos: ['ADMIN', 'GERENTE_DEV', 'BPO', 'PROFESSOR', 'ALUNO'], // todos por ora
+            },
+            {
+                id: 'iah',
+                nome: 'Overfloow',
+                sub: 'IAH',
+                icone: '🤖',
+                desc: 'Inteligência Artificial Humana — gestão e avaliação de agentes de IA nos processos operacionais da Overfloow e de seus clientes.',
+                cor: '#005FAD',
+                glow: 'rgba(0,95,173,.18)',
+                pills: ['Agentes IA', 'Avaliação', 'Processos'],
+                href: '/iah',
+                grupos: ['coming'],
+                comingSoon: true,
+            },
+            {
+                id: 'biz',
+                nome: 'Overfloow',
+                sub: 'Biz',
+                icone: '💼',
+                desc: 'Gestão comercial, contratos, propostas e CRM. Controle de clientes, oportunidades e receita recorrente da Overfloow.',
+                cor: '#0A6E5D',
+                glow: 'rgba(10,110,93,.18)',
+                pills: ['CRM', 'Contratos', 'Receita'],
+                href: '/biz',
+                grupos: ['coming'],
+                comingSoon: true,
+            },
+            {
+                id: 'connect',
+                nome: 'Overfloow',
+                sub: 'Connect',
+                icone: '🌐',
+                desc: 'Portal público para alunos e empresas parceiras. Vagas de trabalho, currículos digitais, notícias, soluções Overfloow e visibilidade da plataforma.',
+                cor: '#059669',
+                glow: 'rgba(5,150,105,.18)',
+                pills: ['Vagas', 'Currículos', 'Notícias'],
+                href: '/connect',
+                grupos: ['coming'],
+                comingSoon: true,
+            },
+        ];
+
+        // ─── Preencher UI ─────────────────────────────────────
+        function init() {
+            if (!_user) return;
+
+            // Header
+            document.getElementById('hub-user-nome').textContent = _user.nome || '—';
+            document.getElementById('hub-user-grupo').textContent = _user.grupo || '—';
+            document.getElementById('welcome-nome').textContent = _user.nome?.split(' ')[0] || '—';
+            document.getElementById('hub-initial').textContent = (_user.nome || '?').charAt(0).toUpperCase();
+            document.getElementById('hub-avatar').style.setProperty('--av-cor', _user.cor || '#3A7BD5');
+
+            // Montar cards de apps
+            const grid = document.getElementById('app-grid');
+            grid.innerHTML = '';
+
+            APPS.forEach(app => {
+                const locked = app.comingSoon;
+                const card = document.createElement('div');
+                card.className = `app-card${locked ? ' locked' : ''}`;
+                card.style.setProperty('--app-cor', app.cor);
+                card.style.setProperty('--app-glow', app.glow);
+                if (!locked) card.onclick = () => goToApp(app);
+
+                card.innerHTML = `
+          <div class="app-icon">${app.icone}</div>
+          <div class="app-name">
+            ${app.nome} <span class="app-sub">${app.sub}</span>
+          </div>
+          <div class="app-desc">${app.desc}</div>
+          <div class="app-footer">
+            <div class="app-pills">
+              ${app.pills.map(p => `<span class="app-pill">${p}</span>`).join('')}
+              ${locked ? '<span class="app-coming">Em breve</span>' : ''}
+            </div>
+            ${!locked ? `<div class="app-arrow">→</div>` : ''}
+          </div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function goToApp(app) {
+            // Salva o app destino e navega
+            sessionStorage.setItem('of_app', app.id);
+            window.location.href = app.href;
+        }
+
+        // ─── Logout ───────────────────────────────────────────
+        function toggleLogout() {
+            document.getElementById('hub-logout').classList.toggle('open');
+        }
+        document.addEventListener('click', e => {
+            const av = document.getElementById('hub-avatar');
+            if (av && !av.contains(e.target))
+                document.getElementById('hub-logout').classList.remove('open');
+        });
+        function logout() {
+            sessionStorage.removeItem('of_user');
+            sessionStorage.removeItem('of_app');
+            window.location.href = '/login';
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

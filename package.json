@@ -1,0 +1,21 @@
+{
+  "name": "overfloow-learn",
+  "version": "1.0.0",
+  "description": "Overfloow Learn — Plataforma de Aulas e E-Books",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^5.22.0",
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^3.0.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  }
+}

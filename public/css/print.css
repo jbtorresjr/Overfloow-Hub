@@ -1,0 +1,224 @@
+/* ═══════════════════════════════════════════════════════════
+   OVERFLOOW LEARN — Estilos de Impressão / PDF
+   Layout editorial premium com capa, seções e logo
+   ═══════════════════════════════════════════════════════════ */
+
+@media print {
+
+    /* ─── Reset de tela ──────────────────────────────────────── */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    body {
+        background: #fff !important;
+        color: #1A2540 !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Ocultar elementos de interface */
+    .app-header,
+    .catalog-toolbar,
+    .viewer-sidebar,
+    .btn-back,
+    .sidebar-actions,
+    .toast-container,
+    #modulo-aula,
+    #modulo-editora,
+    .filter-chips,
+    .header-actions,
+    .header-nav {
+        display: none !important;
+    }
+
+    /* Expandir o viewer para página completa */
+    .viewer-layout {
+        display: block !important;
+        margin: 0 !important;
+        height: auto !important;
+    }
+
+    .viewer-content {
+        padding: 0 !important;
+        overflow: visible !important;
+        width: 100% !important;
+    }
+
+    .app-main {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* ─── CAPA ───────────────────────────────────────────────── */
+    .viewer-cover {
+        page-break-after: always;
+        min-height: 100vh;
+        border-radius: 0 !important;
+        padding: 60px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        margin-bottom: 0 !important;
+    }
+
+    .viewer-cover-logo {
+        height: 52px !important;
+        filter: brightness(0) invert(1) !important;
+    }
+
+    .viewer-cover-title {
+        font-size: 2.4rem !important;
+        line-height: 1.2 !important;
+        color: #fff !important;
+    }
+
+    .viewer-cover-code,
+    .viewer-cover-sub {
+        color: rgba(255, 255, 255, .7) !important;
+    }
+
+    .viewer-cover-footer {
+        font-size: .8rem;
+        color: rgba(255, 255, 255, .5) !important;
+        border-top: 1px solid rgba(255, 255, 255, .2);
+        padding-top: 16px;
+        margin-top: 24px;
+    }
+
+    /* ─── CONTEÚDO APÓS A CAPA ───────────────────────────────── */
+    .print-body {
+        padding: 40px 56px;
+    }
+
+    /* Headings */
+    h1,
+    h2,
+    h3,
+    h4 {
+        font-family: 'Outfit', sans-serif !important;
+        page-break-after: avoid;
+        color: #1A2540 !important;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+        margin-bottom: 16px;
+    }
+
+    h2 {
+        font-size: 1.2rem;
+        margin-top: 32px;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid var(--print-area-cor, #1A3A6C);
+        color: var(--print-area-cor, #1A3A6C) !important;
+    }
+
+    h2::before {
+        display: none !important;
+    }
+
+    h3 {
+        font-size: 1rem;
+        margin-top: 20px;
+    }
+
+    p,
+    li {
+        color: #3A4A60 !important;
+        font-size: .9rem;
+        line-height: 1.7;
+    }
+
+    strong {
+        color: #1A2540 !important;
+    }
+
+    /* Tabelas */
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: .85rem;
+        page-break-inside: avoid;
+    }
+
+    thead th {
+        background: var(--print-area-cor, #1A3A6C) !important;
+        color: #fff !important;
+        padding: 8px 12px;
+        text-align: left;
+    }
+
+    tbody td {
+        padding: 7px 12px;
+        border-bottom: 1px solid #DEE4EE;
+        color: #3A4A60 !important;
+    }
+
+    tbody tr:nth-child(odd) {
+        background: #F5F7FC !important;
+    }
+
+    /* Código */
+    pre,
+    code {
+        background: #F0F4FA !important;
+        color: #1A3A6C !important;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .8rem;
+        border: 1px solid #DEE4EE;
+    }
+
+    pre {
+        padding: 12px;
+        border-radius: 6px;
+        page-break-inside: avoid;
+    }
+
+    /* Blockquote */
+    blockquote {
+        border-left: 4px solid var(--print-area-cor, #1A3A6C) !important;
+        background: #F5F7FC !important;
+        color: #3A4A60 !important;
+        padding: 10px 14px;
+        margin: 12px 0;
+    }
+
+    /* Imagens — placeholders editoriais */
+    .img-placeholder {
+        border: 2px dashed var(--print-area-cor, #1A3A6C) !important;
+        background: #F5F7FC !important;
+        color: #1A3A6C !important;
+        padding: 28px;
+        text-align: center;
+        border-radius: 6px;
+        margin: 12px 0;
+        page-break-inside: avoid;
+        font-size: .85rem;
+    }
+
+    /* Quebras de seção */
+    .section-break {
+        page-break-before: always;
+    }
+
+    /* Rodapé de página */
+    @page {
+        margin: 16mm 18mm;
+
+        @bottom-right {
+            content: "Editora Overfloow© — " counter(page);
+            font-size: 9pt;
+            color: #9AAABB;
+        }
+
+        @bottom-left {
+            content: attr(data-codigo);
+            font-size: 9pt;
+            color: #9AAABB;
+        }
+    }
+}
